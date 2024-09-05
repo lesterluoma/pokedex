@@ -1,4 +1,4 @@
-import { homeImg, iconImg, pikachuImg } from "../utils";
+import { homeImg, iconImg, movesImg, pikachuImg, pokeballImg } from "../utils";
 
 export const navLists = [
   {
@@ -7,7 +7,7 @@ export const navLists = [
   },
   {
     nav: "Pokédex",
-    img: iconImg,
+    img: pokeballImg,
   },
   {
     nav: "Items",
@@ -15,7 +15,7 @@ export const navLists = [
   },
   {
     nav: "Moves",
-    img: pikachuImg,
+    img: movesImg,
   },
   {
     nav: "Types",

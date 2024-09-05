@@ -8,9 +8,13 @@ const Navbar = () => {
           {navLists.map(({ nav, img }) => (
             <div
               key={nav}
-              className="flex items-center px-5 text-2xl cursor-pointer text-black font-bold hover:text-red transition-all"
+              className="flex items-center px-5 text-2xl cursor-pointer text-gray font-bold hover:text-red transition-all"
             >
-              <img src={img} alt={`${nav} Icon`} className="w-6 h-6 mr-2" />
+              <img
+                src={img}
+                alt={`${nav} Icon`}
+                className="w-6 h-6 mr-2 fill-current transition-all"
+              />
               {nav}
             </div>
           ))}
