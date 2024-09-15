@@ -1,10 +1,5 @@
 # Pokédex Project
 
-<<<<<<< HEAD
-<!-- Add a banner image for your project -->
-
-=======
->>>>>>> 57245cbdfa1f8477677c3e6cf6111c513cf6ce59
 ![Pokédex](./public/assets/pokedex-banner.png)
 
 A modern Pokédex web application built with React, Vite, Tailwind CSS, and JavaScript. This project fetches data from the [PokeAPI](https://pokeapi.co/) to display information about various Pokémon.
