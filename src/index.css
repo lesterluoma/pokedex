@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.nav-img {
+  fill: gray;
+}
+
+.nav-img:hover {
+  fill: red;
+}
+
+.pokeball-icon {
+  background-image: url("/assets/.pokeball-icon.svg");
+}

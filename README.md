@@ -1,6 +1,7 @@
 # Pokédex Project
 
 <!-- Add a banner image for your project -->
+
 ![Pokédex](./public/assets/pokedex-banner.png)
 
 A modern Pokédex web application built with React, Vite, Tailwind CSS, and JavaScript. This project fetches data from the [PokeAPI](https://pokeapi.co/) to display information about various Pokémon.
@@ -33,20 +34,23 @@ Check out the live demo: [Pokedex Live](https://your-demo-link.com)
 To run this project locally, follow these steps:
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/your-username/pokedex.git
-    cd pokedex
-    ```
+
+   ```bash
+   git clone https://github.com/your-username/pokedex.git
+   cd pokedex
+   ```
 
 2. Install dependencies:
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
 
 3. Start the development server:
-    ```bash
-    npm run dev
-    ```
+
+   ```bash
+   npm run dev
+   ```
 
 4. Open your browser and navigate to `http://localhost:3000`.
 
@@ -89,12 +93,15 @@ pokedex/
 ├── src/
 │   ├── assets/        # Project-specific images and files
 │   ├── components/    # Reusable React components
+│   ├── constants/     # Reusable variables
 │   ├── pages/         # Page components (e.g., Home, Details)
 │   ├── services/      # API service functions
+│   ├── utils/         # Asset source
 │   ├── App.jsx        # Main application component
-│   ├── index.jsx      # Entry point for React
-│   └── index.css      # Tailwind CSS imports and global styles
+│   ├── index.css      # Tailwind CSS imports and global styles
+│   └── main.jsx       # Entry point for React
 ├── .gitignore         # Git ignore file
 ├── package.json       # NPM dependencies and scripts
 ├── tailwind.config.js # Tailwind CSS configuration
 └── vite.config.js     # Vite configuration
+```
