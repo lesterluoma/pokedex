@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { fetchPokemonData } from "../services/pokeapi.js";
+import { fetchPokemonData } from "../services/pokeapi";
 
 const Searchbar = () => {
   const [searchQuery, setSearchQuery] = useState(""); // To track the input value
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch;
+    }
+  };
 
   const handleSearch = async () => {
     if (searchQuery.trim() !== "") {
@@ -17,11 +23,12 @@ const Searchbar = () => {
 
   return (
     <div className="w-4/5 max-w-full p-4 mx-auto flex justify-center items-center">
-      <div className="flex items-center w-full bg-white text-gray-200 rounded-lg shadow-lg p-3">
+      <div className="flex items-center w-full bg-white-100 text-gray-200 rounded-lg shadow-lg p-3">
         <input
           type="text"
           value={searchQuery} // Bind the input value to state
           onChange={(e) => setSearchQuery(e.target.value)} // Update state when the user types
+          onKeyDown={handleKeyDown}
           placeholder="Find your Pokémon..."
           className="w-full p-3 text-gray-300 font-semibold bg-transparent rounded-lg focus:outline-none"
         />

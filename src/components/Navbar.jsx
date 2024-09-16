@@ -21,7 +21,7 @@ const NavItem = ({ label, svgPath, href }) => (
 
 const Navbar = () => {
   return (
-    <header className="w-4/5 py-5 sm:px-10 px-5 flex justify-between bg-white shadow-md rounded-lg mx-auto mt-10 max-sm:hidden">
+    <header className="w-4/5 py-5 sm:px-10 px-5 flex justify-between bg-white-100 shadow-md rounded-lg mx-auto mt-10 max-sm:hidden">
       <nav className="flex w-full justify-between">
         <NavItem
           label="Home"
