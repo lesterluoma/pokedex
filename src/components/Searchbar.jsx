@@ -1,13 +1,34 @@
+import { useState } from "react";
+import { fetchPokemonData } from "../services/pokeapi.js";
+
 const Searchbar = () => {
+  const [searchQuery, setSearchQuery] = useState(""); // To track the input value
+
+  const handleSearch = async () => {
+    if (searchQuery.trim() !== "") {
+      const data = await fetchPokemonData(searchQuery);
+      if (data) {
+        console.log(data); // Do something with this
+      } else {
+        console.error("No Pokemon found"); // Do something with this
+      }
+    }
+  };
+
   return (
     <div className="w-4/5 max-w-full p-4 mx-auto flex justify-center items-center">
       <div className="flex items-center w-full bg-white text-gray-200 rounded-lg shadow-lg p-3">
         <input
           type="text"
+          value={searchQuery} // Bind the input value to state
+          onChange={(e) => setSearchQuery(e.target.value)} // Update state when the user types
           placeholder="Find your Pokémon..."
           className="w-full p-3 text-gray-300 font-semibold bg-transparent rounded-lg focus:outline-none"
         />
-        <button className="rounded-lg bg-red text-white hover:bg-blue-100 hover:text-red focus:outline-none transition">
+        <button
+          onClick={handleSearch}
+          className="rounded-lg bg-red text-white hover:bg-blue-100 hover:text-red-100 focus:outline focus:outline-offset-2 transition"
+        >
           <svg
             width="30pt"
             height="30pt"
