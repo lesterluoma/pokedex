@@ -1,13 +1,17 @@
 export const fetchPokemonData = async (id) => {
+  const url = `https://pokeapi.co/api/v2/pokemon/${id}`;
+
   try {
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const response = await fetch(url);
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      throw new Error(`Response status: ${response.status}`);
     }
-    console.log(response.json());
-    return await response.json();
+
+    const json = await response.json();
+    console.log(json);
+    return json;
   } catch (error) {
-    console.error("Error fetching Pokémon data:", error);
-    throw error;
+    console.error(error.message);
+    return null;
   }
 };
