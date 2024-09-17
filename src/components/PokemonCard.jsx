@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchPokemonData } from "../services/pokeapi";
+import { typeMap } from "../utils";
 
 const PokemonCard = ({ id }) => {
   const [pokemon, setPokemon] = useState(null);
@@ -8,6 +9,7 @@ const PokemonCard = ({ id }) => {
     const fetchPokemon = async () => {
       try {
         const data = await fetchPokemonData(id);
+
         setPokemon(data);
       } catch (error) {
         console.error("Error fetching Pokémon:", error);
@@ -24,20 +26,25 @@ const PokemonCard = ({ id }) => {
   const { name, types, sprites, id: pokemonId } = pokemon;
 
   return (
-    <div className="bg-white-100 hover:bg-blue-100 rounded-lg block justify-center items-center">
-      <img
-        src={sprites.front_default}
-        alt={name}
-        className="w-full h-full object-cover rounded-lg z-10"
-      />
-      <div className="flex flex-col p-4 items-center">
+    <div className="relative bg-white-100 hover:bg-blue-100 rounded-lg shadow-md p-4">
+      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-10">
+        <img
+          src={sprites.front_default}
+          alt={name}
+          className="w-24 h-24 object-cover rounded-lg z-10"
+        />
+      </div>
+      <div className="mt-12 text-center">
         <p className="text-gray-600 font-bold">No{pokemonId}</p>
         <h1 className="text-2xl font-bold capitalize text-gray-800 mb-2">
           {name}
         </h1>
         <span className="capitalize">
           {types.map((type) => (
-            <span key={type.type.name} className={`text-${type.type.name}`}>
+            <span
+              key={type.type.name}
+              className={`font-bold ${typeMap[type.type.name]}`}
+            >
               {type.type.name} &nbsp;
             </span>
           ))}
