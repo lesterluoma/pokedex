@@ -26,7 +26,7 @@ const PokemonCard = ({ id }) => {
   const { name, types, sprites, id: pokemonId } = pokemon;
 
   return (
-    <div className="relative bg-white-100 hover:bg-blue-100 rounded-lg shadow-md p-4">
+    <div className="relative bg-white-100 hover:bg-blue-100 cursor-pointer rounded-lg shadow-md p-4">
       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-10">
         <img
           src={sprites.front_default}
@@ -35,7 +35,9 @@ const PokemonCard = ({ id }) => {
         />
       </div>
       <div className="mt-12 text-center">
-        <p className="text-gray-600 font-bold">No{pokemonId}</p>
+        <p className="text-gray-600 font-bold">
+          N°{String(pokemonId).padStart(3, "0")}
+        </p>
         <h1 className="text-2xl font-bold capitalize text-gray-800 mb-2">
           {name}
         </h1>

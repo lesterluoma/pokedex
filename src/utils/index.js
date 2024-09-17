@@ -9,6 +9,8 @@ export const homeImg = home;
 export const pokeballImg = pokeball;
 
 export const typeMap = {
+  normal: "text-types-normal",
+  fire: "text-types-fire",
   water: "text-types-water",
   electric: "text-types-electric",
   grass: "text-types-grass",
