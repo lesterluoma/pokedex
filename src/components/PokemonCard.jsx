@@ -38,10 +38,10 @@ const PokemonCard = ({ id }) => {
         <p className="text-gray-600 font-bold">
           N°{String(pokemonId).padStart(3, "0")}
         </p>
-        <h1 className="text-2xl font-bold capitalize text-gray-800 mb-2">
+        <h1 className="text-2xl font-bold capitalize text-gray-800 mb-2 mt-2">
           {name}
         </h1>
-        <span className="capitalize">
+        <div className="capitalize align-center ">
           {types.map((type) => (
             <span
               key={type.type.name}
@@ -50,7 +50,7 @@ const PokemonCard = ({ id }) => {
               {type.type.name} &nbsp;
             </span>
           ))}
-        </span>
+        </div>
       </div>
     </div>
   );
