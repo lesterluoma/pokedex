@@ -12,8 +12,6 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 - [Technologies](#technologies)
 - [API Reference](#api-reference)
 - [Project Structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
