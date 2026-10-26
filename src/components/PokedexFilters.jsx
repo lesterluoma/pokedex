@@ -4,7 +4,7 @@ import {
   POKEMON_TYPES,
   WEIGHT_RANGES,
 } from "../constants";
-import { capitalize, formatName } from "../utils";
+import { capitalize, toTitleCase } from "../utils";
 import { FilterBar, FilterSelect, FilterTextField } from "./FilterControls";
 import {
   AbilityIcon,
@@ -70,7 +70,8 @@ const PokedexFilters = ({
       icon={<AbilityIcon />}
       label="Ability"
       value={filters.ability}
-      suggestions={abilities.map(formatName)}
+      // Title cased here because the browser's suggestion list ignores CSS.
+      suggestions={abilities.map(toTitleCase)}
       listId="ability-options"
       onChange={(value) => onChange("ability", value)}
     />
