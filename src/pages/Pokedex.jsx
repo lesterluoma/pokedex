@@ -46,6 +46,7 @@ const Pokedex = () => {
       <Searchbar
         onSearch={handleSearch}
         onQueryChange={handleQueryChange}
+        initialQuery={grid.query}
         error={searchError}
       />
 

@@ -24,11 +24,11 @@ const App = () => (
       <main className="mx-auto max-w-6xl px-4 pb-16">
         <Navbar />
         <Routes>
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/pokedex" element={<Pokedex />} />
           <Route path="/items" element={<Items />} />
-          {/* Anything else (including "/") goes to the Pokédex */}
-          <Route path="*" element={<Navigate to="/pokedex" replace />} />
+          {/* Anything else (including the old "/home") goes to Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

@@ -20,6 +20,7 @@ const Items = () => {
       <Searchbar
         placeholder="Filter items by name..."
         onQueryChange={grid.changeQuery}
+        initialQuery={grid.query}
       />
 
       {isLoading && <StatusMessage>Loading items...</StatusMessage>}

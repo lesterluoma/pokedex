@@ -7,14 +7,17 @@ import Icon from "./Icon";
  * - `onSearch(query)`: called on submit (Enter or the button). Optional.
  * - `onQueryChange(text)`: called on every keystroke, for live filtering. Optional.
  * - `error`: message shown under the bar.
+ * - `initialQuery`: starting text, e.g. a filter restored from the address bar.
+ *   Only read on first render; after that the input keeps its own text.
  */
 const Searchbar = ({
   onSearch,
   onQueryChange,
   error,
+  initialQuery = "",
   placeholder = "Search your Pokémon by name or number...",
 }) => {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
 
   const handleChange = (event) => {
     setQuery(event.target.value);

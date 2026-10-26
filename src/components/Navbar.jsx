@@ -6,6 +6,8 @@ import ThemeToggle from "./ThemeToggle";
 const NavItem = ({ label, svgPath, href }) => (
   <NavLink
     to={href}
+    // Without `end`, the "/" link would count as active on every page.
+    end
     className={({ isActive }) =>
       `flex items-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors ${
         isActive
