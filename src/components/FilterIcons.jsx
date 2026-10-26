@@ -57,6 +57,42 @@ export const WeightIcon = () => (
   </OutlineIcon>
 );
 
+/** Item pocket: a backpack. */
+export const PocketIcon = () => (
+  <OutlineIcon>
+    <path d="M5 10a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />
+    <path d="M9 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+    <path d="M8 21v-6h8v6" />
+  </OutlineIcon>
+);
+
+/** Item category: a price tag. */
+export const CategoryIcon = () => (
+  <OutlineIcon>
+    <path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z" />
+    <circle cx="7.5" cy="7.5" r="1.5" />
+  </OutlineIcon>
+);
+
+/** Item attribute: a checklist. */
+export const AttributeIcon = () => (
+  <OutlineIcon>
+    <path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17" />
+    <path d="M11 6h10M11 12h10M11 18h10" />
+  </OutlineIcon>
+);
+
+/** Held by wild Pokémon: a paw print. */
+export const HeldIcon = () => (
+  <OutlineIcon>
+    <circle cx="6" cy="10" r="1.6" />
+    <circle cx="10" cy="5.5" r="1.6" />
+    <circle cx="14" cy="5.5" r="1.6" />
+    <circle cx="18" cy="10" r="1.6" />
+    <path d="M12 11c-3 0-5.5 3.5-5.5 6a2.5 2.5 0 0 0 3.2 2.4c1.5-.5 3.1-.5 4.6 0A2.5 2.5 0 0 0 17.5 17c0-2.5-2.5-6-5.5-6z" />
+  </OutlineIcon>
+);
+
 /** Reset: an arrow going round. */
 export const ResetIcon = () => (
   <OutlineIcon className="h-5 w-5">

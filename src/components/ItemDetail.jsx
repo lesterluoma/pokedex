@@ -1,5 +1,6 @@
+import { ITEM_ATTRIBUTES } from "../constants";
 import { useItemDetails } from "../hooks/useItems";
-import { formatName, formatPokedexNumber, spriteUrl } from "../utils";
+import { capitalize, formatName, formatPokedexNumber, spriteUrl } from "../utils";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
 import ItemSprite from "./ItemSprite";
 
@@ -70,14 +71,16 @@ const ItemDetail = ({ id, onClose }) => {
 // Small building blocks used above
 // ---------------------------------------------------------------------------
 
+// Uses the same labels as the Attribute filter (ITEM_ATTRIBUTES), so the
+// panel and the filter always agree.
 const Attributes = ({ attributes }) => (
   <div className="flex flex-wrap justify-center gap-1.5">
     {attributes.map((attribute) => (
       <span
         key={attribute}
-        className="rounded-full bg-page px-3 py-1 text-xs font-semibold capitalize text-subtle"
+        className="rounded-full bg-page px-3 py-1 text-xs font-semibold text-subtle"
       >
-        {formatName(attribute)}
+        {ITEM_ATTRIBUTES[attribute] ?? capitalize(formatName(attribute))}
       </span>
     ))}
   </div>

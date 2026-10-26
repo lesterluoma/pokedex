@@ -279,3 +279,51 @@ const weaknessesFromChart = (types, typeChart) =>
     );
     return multiplier > 1;
   });
+
+// ---------------------------------------------------------------------------
+// Item index (data for the item filters)
+// ---------------------------------------------------------------------------
+
+// pokemonitems_aggregate counts the wild Pokémon that can hold the item.
+const ITEM_INDEX_QUERY = `{
+  item(order_by: { id: asc }) {
+    id
+    itemcategory { name itempocket { name } }
+    itemattributemaps { itemattribute { name } }
+    pokemonitems_aggregate { aggregate { count } }
+  }
+}`;
+
+/**
+ * Pocket, category and attributes for every item, in one request.
+ * Used by the item filters. Returns:
+ * {
+ *   items: [{ id: 17, pocket: "medicine", category: "healing",
+ *             attributes: ["countable", "consumable", ...],
+ *             isHeldByWildPokemon: true }, ...],
+ *   categories: [{ name: "healing", pocket: "medicine" }, ...]  // A to Z
+ * }
+ */
+export const getItemIndex = async () => {
+  const data = await fetchGraphQL(ITEM_INDEX_QUERY);
+
+  const items = data.item.map((entry) => ({
+    id: entry.id,
+    pocket: entry.itemcategory?.itempocket.name ?? null,
+    category: entry.itemcategory?.name ?? null,
+    attributes: entry.itemattributemaps.map(({ itemattribute }) => itemattribute.name),
+    isHeldByWildPokemon: entry.pokemonitems_aggregate.aggregate.count > 0,
+  }));
+
+  // One entry per category, remembering which pocket it belongs to.
+  const pocketByCategory = new Map(
+    items
+      .filter((item) => item.category)
+      .map((item) => [item.category, item.pocket])
+  );
+  const categories = [...pocketByCategory]
+    .map(([name, pocket]) => ({ name, pocket }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return { items, categories };
+};

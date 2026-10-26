@@ -4,12 +4,15 @@ import FeaturedPokemon from "../components/FeaturedPokemon";
 import Searchbar from "../components/Searchbar";
 import ShortcutCard from "../components/ShortcutCard";
 import { ITEMS_SVG_PATH, POKEBALL_SVG_PATH } from "../constants";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useItemList } from "../hooks/useItems";
 import { usePokemonList } from "../hooks/usePokemon";
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
 import { pokedexPath, pokemonOfTheDayId } from "../utils";
 
 const Home = () => {
+  useDocumentTitle(null); // just the site name, "Pokédex"
+
   const navigate = useNavigate();
   // Enter in the search bar goes to the Pokédex with that Pokémon open.
   const pokemonSearch = usePokemonSearch((id) => navigate(pokedexPath(id)));

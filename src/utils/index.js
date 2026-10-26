@@ -9,6 +9,16 @@ export const toSlug = (text) => text.trim().toLowerCase().replace(/\s+/g, "-");
 /** "mr-mime" -> "mr mime" (CSS `capitalize` handles the casing) */
 export const formatName = (name) => name.replace(/-/g, " ");
 
+/**
+ * "fire" -> "Fire". For text CSS can't style, like <option> labels and the
+ * browser tab title.
+ */
+export const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** "mr-mime" -> "Mr Mime", "flabébé" -> "Flabébé" */
+export const toTitleCase = (name) =>
+  formatName(name).split(" ").map(capitalize).join(" ");
+
 /** Small pixel sprite by id, without needing an extra API request. */
 export const spriteUrl = (id) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;

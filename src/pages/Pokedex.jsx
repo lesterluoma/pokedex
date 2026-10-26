@@ -4,13 +4,22 @@ import PokemonCard from "../components/PokemonCard";
 import PokemonDetail from "../components/PokemonDetail";
 import Searchbar from "../components/Searchbar";
 import Sidebar from "../components/Sidebar";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useFilteredList } from "../hooks/useFilteredList";
-import { usePokedexFilters } from "../hooks/usePokedexFilters";
-import { usePokedexIndex, usePokemonList } from "../hooks/usePokemon";
+import {
+  usePokedexIndex,
+  usePokemon,
+  usePokemonList,
+} from "../hooks/usePokemon";
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
 import { useSidebarSelection } from "../hooks/useSidebarSelection";
-import { toSlug } from "../utils";
-import { filterPokemon, needsIndex } from "../utils/pokedexFilters";
+import { useUrlFilters } from "../hooks/useUrlFilters";
+import { toSlug, toTitleCase } from "../utils";
+import {
+  filterPokemon,
+  needsPokedexIndex,
+  readPokedexFilters,
+} from "../utils/pokedexFilters";
 
 // "25" or "#025" matches Pikachu by number; anything else matches by name.
 const matchesNameOrNumber = (pokemon, query) => {
@@ -25,9 +34,9 @@ const Pokedex = () => {
   // the grid still works if the index fails to load.
   const allPokemon = usePokemonList();
   const pokedexIndex = usePokedexIndex();
-  const pokedexFilters = usePokedexFilters();
+  const pokedexFilters = useUrlFilters(readPokedexFilters);
   const { filters } = pokedexFilters;
-  const isWaitingForIndex = needsIndex(filters) && !pokedexIndex.data;
+  const isWaitingForIndex = needsPokedexIndex(filters) && !pokedexIndex.data;
 
   // Filters run first, then the search text inside useFilteredList.
   const pokemonList = filterPokemon(allPokemon.data, pokedexIndex.data, filters);
@@ -37,6 +46,11 @@ const Pokedex = () => {
   // Typing filters the grid; pressing Enter also opens an exact match in
   // the sidebar.
   const pokemonSearch = usePokemonSearch(sidebar.open);
+
+  // Tab title: the open Pokémon's name, or "Pokémon". usePokemon shares its
+  // cached request with the sidebar, so this doesn't fetch anything extra.
+  const openPokemon = usePokemon(sidebar.isOpen ? sidebar.selectedId : null);
+  useDocumentTitle(openPokemon.data ? toTitleCase(openPokemon.data.name) : "Pokémon");
 
   const handleQueryChange = (text) => {
     pokemonSearch.clearError();

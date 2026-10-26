@@ -19,7 +19,9 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 - Home page with a Pokémon of the day, quick search, and shortcuts to browse by type.
 - Browse all 1,025 Pokémon in National Pokédex order.
 - Browse all Pokémon items, including Poké Balls, potions, berries, and TMs.
-- Filter Pokémon by name, ID, type, weakness, ability, height, weight, and Pokédex number range, and filter items by name.
+- Filter Pokémon by name, ID, type, weakness, ability, height, weight, and Pokédex number range.
+- Filter items by name, bag pocket, category, attribute, whether wild Pokémon hold them, and item number range.
+- The browser tab shows the page you're on, or the name of the open Pokémon or item.
 - View detailed information about each Pokémon, including type, stats, abilities, weaknesses, and evolutions.
 - View detailed information about each item, including its effect, description, price, and which wild Pokémon hold it.
 - Details open in a sidebar that slides in from the right.
@@ -61,6 +63,7 @@ Once the development server is running, you can:
 - Click a type under "Browse by type" on the Home page to see every Pokémon of that type.
 - Filter the Pokédex by typing a Pokémon's name or ID into the search bar.
 - Use the filters on the Pokédex page to narrow down the list by type, weakness, ability, height, or weight, or enter a from and to number to show a range. Filters work together with each other and with the search bar.
+- Use the filters on the Items page to narrow down items by bag pocket, category, or attribute, or show only items held by wild Pokémon.
 - Click the reset button next to the filters to clear them all.
 - Press Enter in the search bar to open a Pokémon directly. This also finds alternate forms, such as `charizard-mega-x`.
 - Click on a Pokémon to view its detailed information. Click it again to close the sidebar.
@@ -92,7 +95,7 @@ This project uses the [PokeAPI](https://pokeapi.co/) to fetch Pokémon and item 
   - `/item`: Get the list of every item.
   - `/item/{id or name}`: Get details about a specific item.
 
-The Pokédex filters need the types, abilities, height, and weight of every Pokémon at once. Instead of making 1,025 separate requests, they get it all in one request from the PokeAPI GraphQL API:
+The filters need data for every Pokémon or item at once, such as each Pokémon's types and abilities or each item's pocket and category. Instead of making thousands of separate requests, each page gets it all in one request from the PokeAPI GraphQL API:
 
 - **GraphQL URL**: `https://graphql.pokeapi.co/v1beta2`
 

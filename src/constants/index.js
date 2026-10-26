@@ -1,3 +1,7 @@
+// Shown in the browser tab, e.g. "Pikachu | Pokédex" (see useDocumentTitle).
+// Keep it the same as the <title> in index.html, which shows before React loads.
+export const SITE_NAME = "Pokédex";
+
 // Highest National Pokédex number. Used to hide the "next" button.
 export const MAX_POKEDEX_ID = 1025;
 // Cards rendered per "Show more" click on the Pokédex and Items pages.
@@ -7,6 +11,29 @@ export const GRID_PAGE_SIZE = 120;
 // Options for the Pokédex height and weight filters, keyed by the value
 // stored in the address bar (e.g. "?height=tall"). `min` counts as inside
 // the range, `max` doesn't, so 1 m is "medium", not "short".
+// Options for the item filters, keyed by the API's names (also what's
+// stored in the address bar, e.g. "?pocket=berries"), in display order.
+// Pockets are the sections of the bag in the games.
+export const ITEM_POCKETS = {
+  pokeballs: "Poké Balls",
+  medicine: "Medicine",
+  berries: "Berries",
+  battle: "Battle items",
+  machines: "TMs and HMs",
+  key: "Key items",
+  mail: "Mail",
+  misc: "Other items",
+};
+export const ITEM_ATTRIBUTES = {
+  "usable-in-battle": "Usable in battle",
+  "usable-overworld": "Usable outside battle",
+  consumable: "Used up when used",
+  countable: "Stackable",
+  holdable: "Holdable",
+  "holdable-active": "Works when held",
+  underground: "Found underground",
+};
+
 // Labels are kept short because a dropdown is as wide as its longest option.
 export const HEIGHT_RANGES = {
   short: { label: "Under 1 m", min: 0, max: 1 },
