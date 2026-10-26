@@ -61,3 +61,5 @@ export const NAV_ITEMS = [
 
 // Pokéball icon, shared by the Pokédex nav item and the search button.
 export const POKEBALL_SVG_PATH = NAV_ITEMS[1].svgPath;
+// Shopping bag icon, shared by the Items nav item and the Home shortcut.
+export const ITEMS_SVG_PATH = NAV_ITEMS[2].svgPath;

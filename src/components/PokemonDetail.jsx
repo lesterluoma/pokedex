@@ -1,7 +1,8 @@
-import { MAX_POKEDEX_ID, STATS } from "../constants";
+import { MAX_POKEDEX_ID } from "../constants";
 import { usePokemon, usePokemonDetails } from "../hooks/usePokemon";
 import { formatName, formatPokedexNumber, spriteUrl } from "../utils";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
+import StatBubbles from "./StatBubbles";
 import TypeBadge from "./TypeBadge";
 
 /**
@@ -50,7 +51,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
               </Section>
             </div>
             <Section title="Stats">
-              <Stats stats={pokemon.stats} />
+              <StatBubbles stats={pokemon.stats} />
             </Section>
             {pokemon.evolutions.length > 1 && (
               <Section title="Evolution">
@@ -119,32 +120,6 @@ const Weaknesses = ({ weaknesses }) => (
     ))}
   </div>
 );
-
-const Stats = ({ stats }) => {
-  const total = stats.reduce((sum, stat) => sum + stat.value, 0);
-  const statBubbles = [
-    ...stats.map(({ name, value }) => ({ ...STATS[name], value })),
-    { label: "TOT", className: "bg-stats-total", value: total },
-  ];
-
-  return (
-    <div className="flex justify-center gap-1.5">
-      {statBubbles.map(({ label, className, value }) => (
-        <div
-          key={label}
-          className="flex w-10 flex-col items-center rounded-full bg-page p-1 pb-2"
-        >
-          <span
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-[9px] font-bold text-white ${className}`}
-          >
-            {label}
-          </span>
-          <span className="mt-1 text-xs font-semibold">{value}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 const Evolutions = ({ evolutions, onSelect }) => (
   <div className="flex flex-wrap items-center justify-center gap-2">
