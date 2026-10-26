@@ -19,7 +19,7 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 - Home page with a Pokémon of the day, quick search, and shortcuts to browse by type.
 - Browse all 1,025 Pokémon in National Pokédex order.
 - Browse all Pokémon items, including Poké Balls, potions, berries, and TMs.
-- Filter Pokémon by name, ID, or type, and filter items by name.
+- Filter Pokémon by name, ID, type, weakness, ability, height, weight, and Pokédex number range, and filter items by name.
 - View detailed information about each Pokémon, including type, stats, abilities, weaknesses, and evolutions.
 - View detailed information about each item, including its effect, description, price, and which wild Pokémon hold it.
 - Details open in a sidebar that slides in from the right.
@@ -60,7 +60,8 @@ Once the development server is running, you can:
 - Check out the Pokémon of the day on the Home page, or click "Surprise me" to open a random Pokémon.
 - Click a type under "Browse by type" on the Home page to see every Pokémon of that type.
 - Filter the Pokédex by typing a Pokémon's name or ID into the search bar.
-- Use the Type dropdown on the Pokédex page to show only one type. It works together with the search bar.
+- Use the filters on the Pokédex page to narrow down the list by type, weakness, ability, height, or weight, or enter a from and to number to show a range. Filters work together with each other and with the search bar.
+- Click the reset button next to the filters to clear them all.
 - Press Enter in the search bar to open a Pokémon directly. This also finds alternate forms, such as `charizard-mega-x`.
 - Click on a Pokémon to view its detailed information. Click it again to close the sidebar.
 - Click "Show more" at the bottom of the page to load more cards.
@@ -86,12 +87,16 @@ This project uses the [PokeAPI](https://pokeapi.co/) to fetch Pokémon and item 
   - `/pokemon-species`: Get the list of every Pokémon.
   - `/pokemon/{id or name}`: Get details about a specific Pokémon.
   - `/pokemon-species/{id}`: Get a Pokémon's description and category.
-  - `/type/{id or name}`: Get details about a specific Pokémon type, used to work out weaknesses and to filter the Pokédex by type.
+  - `/type/{id or name}`: Get details about a specific Pokémon type, used to work out weaknesses.
   - `/evolution-chain/{id}`: Get a Pokémon's evolutions.
   - `/item`: Get the list of every item.
   - `/item/{id or name}`: Get details about a specific item.
 
-For more information, visit the [PokeAPI documentation](https://pokeapi.co/docs/v2).
+The Pokédex filters need the types, abilities, height, and weight of every Pokémon at once. Instead of making 1,025 separate requests, they get it all in one request from the PokeAPI GraphQL API:
+
+- **GraphQL URL**: `https://graphql.pokeapi.co/v1beta2`
+
+For more information, visit the [PokeAPI documentation](https://pokeapi.co/docs/v2) and the [GraphQL documentation](https://pokeapi.co/docs/graphql).
 
 ## Project Structure
 

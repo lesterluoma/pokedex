@@ -1,28 +1,47 @@
 // All PokeAPI access lives here. Components never call fetch() directly.
 // Every function throws on failure, so callers can catch and show an error.
 
-import { MAX_POKEDEX_ID } from "../constants";
-
 const BASE_URL = "https://pokeapi.co/api/v2";
+// PokeAPI's GraphQL API. Only used for getPokedexIndex(), which needs data
+// for every Pokémon at once (the REST API would take 1,025 requests).
+const GRAPHQL_URL = "https://graphql.pokeapi.co/v1beta2";
 
-// Cache of in-flight/finished requests keyed by URL. The grid card and the
-// detail panel ask for the same Pokémon, so this keeps it to one request each.
+// Cache of in-flight/finished requests. The grid card and the detail panel
+// ask for the same Pokémon, so this keeps it to one request each.
 const cache = new Map();
 
-const fetchJson = (url) => {
-  if (!cache.has(url)) {
-    const request = fetch(url).then((response) => {
-      if (!response.ok) {
-        throw new Error(`Request failed (${response.status}): ${url}`);
-      }
-      return response.json();
-    });
+/** Runs `load()` once per `key` and shares the result with every caller. */
+const cached = (key, load) => {
+  if (!cache.has(key)) {
+    const request = load();
     // Don't keep failed requests around, so the next attempt retries.
-    request.catch(() => cache.delete(url));
-    cache.set(url, request);
+    request.catch(() => cache.delete(key));
+    cache.set(key, request);
   }
-  return cache.get(url);
+  return cache.get(key);
 };
+
+const parseResponse = (url) => (response) => {
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status}): ${url}`);
+  }
+  return response.json();
+};
+
+const fetchJson = (url) => cached(url, () => fetch(url).then(parseResponse(url)));
+
+const fetchGraphQL = (query) =>
+  cached(query, async () => {
+    const response = await fetch(GRAPHQL_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    // GraphQL reports query mistakes as `errors` in a 200 response.
+    const { data, errors } = await parseResponse(GRAPHQL_URL)(response);
+    if (errors) throw new Error(`GraphQL error: ${errors[0].message}`);
+    return data;
+  });
 
 // "https://pokeapi.co/api/v2/pokemon-species/7/" -> 7
 const idFromUrl = (url) => Number(url.split("/").filter(Boolean).pop());
@@ -191,17 +210,72 @@ const latestPurchasePrice = (prices) =>
   prices.findLast((price) => price.purchase_price)?.purchase_price ?? null;
 
 // ---------------------------------------------------------------------------
-// Types
+// Pokédex index (data for the filters)
 // ---------------------------------------------------------------------------
 
+// `is_default` skips alternate forms, so there's one entry per Pokédex number.
+// typeefficacy is the type chart: how much damage each type does to each other
+// type, as a percentage (0, 50, 100 or 200).
+const POKEDEX_INDEX_QUERY = `{
+  pokemon(where: { is_default: { _eq: true } }, order_by: { pokemon_species_id: asc }) {
+    id: pokemon_species_id
+    name
+    height
+    weight
+    pokemontypes { type { name } }
+    pokemonabilities { ability { name } }
+  }
+  typeefficacy {
+    damage_factor
+    attacker: type { name }
+    defender: TypeByTargetTypeId { name }
+  }
+}`;
+
 /**
- * Pokédex numbers of every Pokémon with this type, e.g. "fire" -> [4, 5, 6, ...].
- * The API also lists alternate forms (ids above 10000); those are dropped
- * so the result lines up with getPokemonList().
+ * Types, abilities, size and weaknesses for every Pokémon, in one request.
+ * Used by the Pokédex filters. Returns:
+ * {
+ *   pokemon: [{ id: 6, name: "charizard", types: ["fire", "flying"],
+ *               abilities: ["blaze", "solar-power"], heightMeters: 1.7,
+ *               weightKg: 90.5, weaknesses: ["water", "electric", "rock"] }, ...],
+ *   abilities: ["adaptability", "aerilate", ...]  // every ability, A to Z
+ * }
  */
-export const getPokemonIdsOfType = async (type) => {
-  const { pokemon } = await fetchJson(`${BASE_URL}/type/${type}`);
-  return pokemon
-    .map(({ pokemon }) => idFromUrl(pokemon.url))
-    .filter((id) => id <= MAX_POKEDEX_ID);
+export const getPokedexIndex = async () => {
+  const data = await fetchGraphQL(POKEDEX_INDEX_QUERY);
+
+  // { fire: { grass: 2, water: 0.5, ... }, ... } (attacker -> defender -> multiplier)
+  const typeChart = {};
+  data.typeefficacy.forEach(({ damage_factor, attacker, defender }) => {
+    typeChart[attacker.name] ??= {};
+    typeChart[attacker.name][defender.name] = damage_factor / 100;
+  });
+
+  const pokemon = data.pokemon.map((entry) => {
+    const types = entry.pokemontypes.map(({ type }) => type.name);
+    return {
+      id: entry.id,
+      name: entry.name,
+      types,
+      abilities: entry.pokemonabilities.map(({ ability }) => ability.name),
+      heightMeters: entry.height / 10, // API gives decimeters
+      weightKg: entry.weight / 10, // API gives hectograms
+      weaknesses: weaknessesFromChart(types, typeChart),
+    };
+  });
+
+  const abilities = [...new Set(pokemon.flatMap((entry) => entry.abilities))];
+  return { pokemon, abilities: abilities.sort() };
 };
+
+// Attacking types that do more than normal damage to a Pokémon with these
+// types. Multipliers stack: Water does 2 x 2 = 4x to a Rock/Ground Pokémon.
+const weaknessesFromChart = (types, typeChart) =>
+  Object.keys(typeChart).filter((attacker) => {
+    const multiplier = types.reduce(
+      (total, type) => total * (typeChart[attacker][type] ?? 1),
+      1
+    );
+    return multiplier > 1;
+  });

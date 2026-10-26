@@ -1,6 +1,25 @@
 import { useSearchParams } from "react-router-dom";
 
 /**
+ * Returns a copy of `current` (URLSearchParams) with `changes` applied,
+ * e.g. { type: "fire", from: null }. null or "" removes a parameter.
+ *
+ * Use this to change several parameters at once: separate updates in the
+ * same click would each start from the old address and overwrite each other.
+ */
+export const withParams = (current, changes) => {
+  const next = new URLSearchParams(current);
+  for (const [name, value] of Object.entries(changes)) {
+    if (value == null || value === "") {
+      next.delete(name);
+    } else {
+      next.set(name, String(value));
+    }
+  }
+  return next;
+};
+
+/**
  * Reads and writes one query parameter in the address bar, e.g. `id` in
  * "/pokedex?id=25". Other parameters are left untouched.
  *
@@ -14,18 +33,9 @@ export const useSearchParam = (name) => {
   const [params, setParams] = useSearchParams();
 
   const setValue = (newValue, { replace = false } = {}) => {
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        if (newValue == null || newValue === "") {
-          next.delete(name);
-        } else {
-          next.set(name, String(newValue));
-        }
-        return next;
-      },
-      { replace }
-    );
+    setParams((current) => withParams(current, { [name]: newValue }), {
+      replace,
+    });
   };
 
   return [params.get(name), setValue];

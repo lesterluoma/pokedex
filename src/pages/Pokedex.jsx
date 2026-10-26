@@ -1,16 +1,16 @@
 import { ShowMoreButton, StatusMessage } from "../components/GridFooter";
+import PokedexFilters from "../components/PokedexFilters";
 import PokemonCard from "../components/PokemonCard";
 import PokemonDetail from "../components/PokemonDetail";
 import Searchbar from "../components/Searchbar";
 import Sidebar from "../components/Sidebar";
-import TypeFilter from "../components/TypeFilter";
-import { POKEMON_TYPES } from "../constants";
 import { useFilteredList } from "../hooks/useFilteredList";
-import { usePokemonIdsOfType, usePokemonList } from "../hooks/usePokemon";
+import { usePokedexFilters } from "../hooks/usePokedexFilters";
+import { usePokedexIndex, usePokemonList } from "../hooks/usePokemon";
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
-import { useSearchParam } from "../hooks/useSearchParam";
 import { useSidebarSelection } from "../hooks/useSidebarSelection";
 import { toSlug } from "../utils";
+import { filterPokemon, needsIndex } from "../utils/pokedexFilters";
 
 // "25" or "#025" matches Pikachu by number; anything else matches by name.
 const matchesNameOrNumber = (pokemon, query) => {
@@ -19,30 +19,19 @@ const matchesNameOrNumber = (pokemon, query) => {
   return pokemon.name.includes(toSlug(query));
 };
 
-// Keeps only the Pokémon whose id is in `typeIds`.
-// Returns null while either list is still loading.
-const filterByType = (pokemonList, typeIds) => {
-  if (!pokemonList || !typeIds) return null;
-  const ids = new Set(typeIds);
-  return pokemonList.filter((pokemon) => ids.has(pokemon.id));
-};
-
 const Pokedex = () => {
+  // The grid is built from the plain Pokémon list. The index (types,
+  // abilities, size, weaknesses) is only needed once a filter uses it, so
+  // the grid still works if the index fails to load.
   const allPokemon = usePokemonList();
+  const pokedexIndex = usePokedexIndex();
+  const pokedexFilters = usePokedexFilters();
+  const { filters } = pokedexFilters;
+  const isWaitingForIndex = needsIndex(filters) && !pokedexIndex.data;
 
-  // The type filter lives in the address bar as `?type=fire`.
-  // Unknown values (e.g. "?type=banana") are ignored.
-  const [typeParam, setTypeParam] = useSearchParam("type");
-  const type = POKEMON_TYPES.includes(typeParam) ? typeParam : null;
-  const typeIds = usePokemonIdsOfType(type);
-
-  // The type filter runs first, then the text filter inside useFilteredList.
-  const pokemonList = type
-    ? filterByType(allPokemon.data, typeIds.data)
-    : allPokemon.data;
+  // Filters run first, then the search text inside useFilteredList.
+  const pokemonList = filterPokemon(allPokemon.data, pokedexIndex.data, filters);
   const grid = useFilteredList(pokemonList, matchesNameOrNumber);
-  const isLoading = allPokemon.isLoading || typeIds.isLoading;
-  const error = allPokemon.error || typeIds.error;
 
   const sidebar = useSidebarSelection();
   // Typing filters the grid; pressing Enter also opens an exact match in
@@ -54,9 +43,13 @@ const Pokedex = () => {
     grid.changeQuery(text);
   };
 
-  const handleTypeChange = (newType) => {
-    // `replace` like the text filter, so Back doesn't step through each type.
-    setTypeParam(newType, { replace: true });
+  const handleFilterChange = (name, value) => {
+    pokedexFilters.setFilter(name, value);
+    grid.resetPage();
+  };
+
+  const handleResetFilters = () => {
+    pokedexFilters.resetFilters();
     grid.resetPage();
   };
 
@@ -68,19 +61,30 @@ const Pokedex = () => {
         initialQuery={grid.query}
         error={pokemonSearch.error}
       />
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <TypeFilter value={type} onChange={handleTypeChange} />
-      </div>
+      <PokedexFilters
+        filters={filters}
+        onChange={handleFilterChange}
+        onReset={handleResetFilters}
+        isActive={pokedexFilters.isActive}
+        abilities={pokedexIndex.data?.abilities ?? []}
+        resultCount={pokemonList ? grid.matchCount : null}
+      />
 
-      {isLoading && <StatusMessage>Loading Pokémon...</StatusMessage>}
-      {error && (
+      {allPokemon.isLoading && <StatusMessage>Loading Pokémon...</StatusMessage>}
+      {allPokemon.error && (
         <StatusMessage>Couldn&apos;t load Pokémon. Try refreshing.</StatusMessage>
       )}
-      {pokemonList && grid.matchCount === 0 && (
+      {isWaitingForIndex && pokedexIndex.isLoading && (
+        <StatusMessage>Loading filters...</StatusMessage>
+      )}
+      {isWaitingForIndex && pokedexIndex.error && (
         <StatusMessage>
-          No {type && <span className="capitalize">{type}-type </span>}
-          Pokémon match &quot;{grid.query}&quot;.
+          Couldn&apos;t load the data for these filters. Try refreshing, or
+          reset the filters to see every Pokémon.
         </StatusMessage>
+      )}
+      {pokemonList && grid.matchCount === 0 && (
+        <StatusMessage>No Pokémon match your search and filters.</StatusMessage>
       )}
 
       <div className="mt-20 flex items-start">

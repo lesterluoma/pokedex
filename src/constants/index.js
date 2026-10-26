@@ -4,6 +4,21 @@ export const MAX_POKEDEX_ID = 1025;
 // Each Pokémon card makes its own request, so keep this modest.
 export const GRID_PAGE_SIZE = 120;
 
+// Options for the Pokédex height and weight filters, keyed by the value
+// stored in the address bar (e.g. "?height=tall"). `min` counts as inside
+// the range, `max` doesn't, so 1 m is "medium", not "short".
+// Labels are kept short because a dropdown is as wide as its longest option.
+export const HEIGHT_RANGES = {
+  short: { label: "Under 1 m", min: 0, max: 1 },
+  medium: { label: "1 to 2 m", min: 1, max: 2 },
+  tall: { label: "2 m and up", min: 2, max: Infinity },
+};
+export const WEIGHT_RANGES = {
+  light: { label: "Under 20 kg", min: 0, max: 20 },
+  medium: { label: "20 to 100 kg", min: 20, max: 100 },
+  heavy: { label: "100 kg and up", min: 100, max: Infinity },
+};
+
 // Tailwind only ships classes it can find as full strings in the source,
 // so every type/stat class is spelled out here instead of built dynamically.
 // The colors themselves live in tailwind.config.js.
