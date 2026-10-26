@@ -1,33 +1,37 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  Navigate,
+  BrowserRouter as Router,
+  Route,
+  Routes,
+} from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Searchbar from "./components/Searchbar";
 import Home from "./pages/Home";
 import Items from "./pages/Items";
 import Pokedex from "./pages/Pokedex";
 
-import { backgroundImg } from "./utils";
+const App = () => (
+  <Router>
+    {/* overflow-x-clip: the closed sidebar sits just off-screen to the right */}
+    <div className="relative min-h-screen overflow-x-clip">
+      {/* Decorative pokéball in the top-left corner */}
+      <img
+        src="/assets/background.svg"
+        alt=""
+        className="pointer-events-none absolute -left-60 -top-60 -z-10 h-[800px] w-[800px]"
+      />
 
-const App = () => {
-  return (
-    <Router>
-      <main>
-        <div className="-top-60 -left-60 -z-10 absolute w-[800px] h-[800px]">
-          <img
-            src={backgroundImg}
-            alt="pokeball background"
-            className="w-full h-full"
-          />
-        </div>
+      <main className="mx-auto max-w-6xl px-4 pb-16">
         <Navbar />
-        <Searchbar />
         <Routes>
           <Route path="/home" element={<Home />} />
           <Route path="/pokedex" element={<Pokedex />} />
           <Route path="/items" element={<Items />} />
+          {/* Anything else (including "/") goes to the Pokédex */}
+          <Route path="*" element={<Navigate to="/pokedex" replace />} />
         </Routes>
       </main>
-    </Router>
-  );
-};
+    </div>
+  </Router>
+);
 
 export default App;

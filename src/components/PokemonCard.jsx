@@ -1,58 +1,65 @@
-import { useEffect, useState } from "react";
-import { fetchPokemonData } from "../services/pokeapi";
-import { typeMap } from "../utils";
+import { usePokemon } from "../hooks/usePokemon";
+import { formatName, formatPokedexNumber } from "../utils";
+import TypeBadge from "./TypeBadge";
 
-const PokemonCard = ({ id }) => {
-  const [pokemon, setPokemon] = useState(null);
+// Shared card shell so loading, error and loaded states are the same size.
+const CardShell = ({ children, isSelected = false, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={!onClick}
+    aria-pressed={isSelected}
+    className={`relative flex h-36 w-full flex-col items-center justify-end rounded-3xl bg-white px-4 pb-5 shadow-sm transition
+      enabled:hover:-translate-y-1 enabled:hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red
+      ${isSelected ? "ring-2 ring-red" : ""}`}
+  >
+    {children}
+  </button>
+);
 
-  useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const data = await fetchPokemonData(id);
+const PokemonCard = ({ id, isSelected, onSelect }) => {
+  const { data: pokemon, error, isLoading } = usePokemon(id);
 
-        setPokemon(data);
-      } catch (error) {
-        console.error("Error fetching Pokémon:", error);
-      }
-    };
-
-    fetchPokemon();
-  }, [id]);
-
-  if (!pokemon) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <CardShell>
+        <span className="text-xs font-semibold text-gray-300">
+          {formatPokedexNumber(id)}
+        </span>
+      </CardShell>
+    );
   }
 
-  const { name, types, sprites, id: pokemonId } = pokemon;
+  if (error) {
+    return (
+      <CardShell>
+        <span className="text-xs font-semibold text-red">
+          Couldn&apos;t load {formatPokedexNumber(id)}
+        </span>
+      </CardShell>
+    );
+  }
 
   return (
-    <div className="relative bg-white-100 hover:bg-blue-100 cursor-pointer rounded-lg shadow-md p-4">
-      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 z-10">
-        <img
-          src={sprites.front_default}
-          alt={name}
-          className="w-24 h-24 object-cover rounded-lg z-10"
-        />
+    <CardShell isSelected={isSelected} onClick={() => onSelect(id)}>
+      <img
+        src={pokemon.sprites.front_default}
+        alt={pokemon.name}
+        loading="lazy"
+        className="pixelated absolute -top-12 h-24 w-24"
+      />
+      <p className="text-xs font-semibold text-gray-400">
+        {formatPokedexNumber(pokemon.id)}
+      </p>
+      <h2 className="mb-2 mt-1 text-lg font-bold capitalize">
+        {formatName(pokemon.name)}
+      </h2>
+      <div className="flex gap-1.5">
+        {pokemon.types.map(({ type }) => (
+          <TypeBadge key={type.name} type={type.name} />
+        ))}
       </div>
-      <div className="mt-12 text-center">
-        <p className="text-gray-600 font-bold">
-          N°{String(pokemonId).padStart(3, "0")}
-        </p>
-        <h1 className="text-2xl font-bold capitalize text-gray-800 mb-2 mt-2">
-          {name}
-        </h1>
-        <div className="capitalize align-center ">
-          {types.map((type) => (
-            <span
-              key={type.type.name}
-              className={`font-bold ${typeMap[type.type.name]}`}
-            >
-              {type.type.name} &nbsp;
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
+    </CardShell>
   );
 };
 

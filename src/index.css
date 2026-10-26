@@ -2,14 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-.nav-img {
-  fill: gray;
+body {
+  @apply bg-page font-sans text-ink antialiased;
 }
 
-.nav-img:hover {
-  fill: red;
-}
-
-.pokeball-icon {
-  background-image: url("/assets/.pokeball-icon.svg");
+/* Keeps the small game sprites crisp instead of blurry when scaled up. */
+.pixelated {
+  image-rendering: pixelated;
 }
