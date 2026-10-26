@@ -3,15 +3,27 @@ import { POKEBALL_SVG_PATH } from "../constants";
 import Icon from "./Icon";
 
 /**
- * Just a form: it hands the trimmed query to `onSearch` and shows `error`.
- * The actual lookup happens in the parent page.
+ * Just a form; the actual lookup happens in the parent page.
+ * - `onSearch(query)`: called on submit (Enter or the button). Optional.
+ * - `onQueryChange(text)`: called on every keystroke, for live filtering. Optional.
+ * - `error`: message shown under the bar.
  */
-const Searchbar = ({ onSearch, error }) => {
+const Searchbar = ({
+  onSearch,
+  onQueryChange,
+  error,
+  placeholder = "Search your Pokémon by name or number...",
+}) => {
   const [query, setQuery] = useState("");
+
+  const handleChange = (event) => {
+    setQuery(event.target.value);
+    onQueryChange?.(event.target.value);
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault(); // stop the browser from reloading the page
-    if (query.trim()) onSearch(query.trim());
+    if (query.trim()) onSearch?.(query.trim());
   };
 
   return (
@@ -20,8 +32,8 @@ const Searchbar = ({ onSearch, error }) => {
         <input
           type="text"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search your Pokémon by name or number..."
+          onChange={handleChange}
+          placeholder={placeholder}
           className="w-full bg-transparent py-3 text-sm text-ink placeholder:text-gray-400 focus:outline-none"
         />
         <button

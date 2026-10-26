@@ -1,6 +1,7 @@
 import { MAX_POKEDEX_ID, STATS } from "../constants";
 import { usePokemon, usePokemonDetails } from "../hooks/usePokemon";
 import { formatName, formatPokedexNumber, spriteUrl } from "../utils";
+import DetailPanel, { Pill, Section } from "./DetailPanel";
 import TypeBadge from "./TypeBadge";
 
 /**
@@ -12,18 +13,12 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
   const { data: pokemon, error, isLoading } = usePokemonDetails(id);
 
   return (
-    <div className="relative flex h-full flex-col rounded-t-3xl bg-white shadow-xl lg:h-auto lg:max-h-[calc(100vh-7.5rem)] lg:rounded-3xl">
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close details"
-        className="absolute right-4 top-4 z-10 rounded-full p-1 text-xl leading-none text-gray-400 hover:bg-page hover:text-ink"
-      >
-        ×
-      </button>
-
-      {isLoading && <Message>Loading...</Message>}
-      {error && <Message>Couldn&apos;t load this Pokémon. Try again.</Message>}
+    <DetailPanel
+      onClose={onClose}
+      isLoading={isLoading}
+      error={error}
+      errorMessage="Couldn't load this Pokémon. Try again."
+    >
       {pokemon && (
         <>
           {/* Artwork pokes out above the top of the card */}
@@ -69,32 +64,13 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
           <PrevNextNav id={pokemon.id} onSelect={onSelect} />
         </>
       )}
-    </div>
+    </DetailPanel>
   );
 };
 
 // ---------------------------------------------------------------------------
 // Small building blocks used above
 // ---------------------------------------------------------------------------
-
-const Message = ({ children }) => (
-  <p className="p-10 text-center text-sm text-gray-400">{children}</p>
-);
-
-const Section = ({ title, children }) => (
-  <section className="mt-4">
-    <h3 className="mb-1.5 text-sm font-bold uppercase tracking-wide">{title}</h3>
-    {children}
-  </section>
-);
-
-const Pill = ({ children, className = "" }) => (
-  <div
-    className={`rounded-full bg-page px-4 py-2 text-sm font-medium ${className}`}
-  >
-    {children}
-  </div>
-);
 
 const Header = ({ pokemon }) => (
   <>

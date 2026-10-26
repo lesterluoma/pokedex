@@ -130,3 +130,48 @@ const describeEvolutionTrigger = (details) => {
   if (details.item) return details.item.name.replace(/-/g, " ");
   return details.trigger.name.replace(/-/g, " "); // e.g. "trade", "level up"
 };
+
+// ---------------------------------------------------------------------------
+// Items
+// ---------------------------------------------------------------------------
+
+/**
+ * Every item as [{ id: 1, name: "master-ball" }, ...] (about 2,200 of them).
+ * The list endpoint only has names, so grid cards build their sprite URL
+ * from the name instead of fetching each item.
+ */
+export const getItemList = async () => {
+  const { results } = await fetchJson(`${BASE_URL}/item?limit=10000`);
+  return results.map(({ name, url }) => ({ id: idFromUrl(url), name }));
+};
+
+/**
+ * Everything the item sidebar needs, flattened into one plain object.
+ * If the panel shows something wrong, log the return value of this function.
+ */
+export const getItemDetails = async (id) => {
+  const item = await fetchJson(`${BASE_URL}/item/${id}`);
+
+  return {
+    id: item.id,
+    name: item.name,
+    sprite: item.sprites.default, // can be null
+    category: item.category.name,
+    effect: englishEntry(item.effect_entries)?.short_effect ?? "",
+    // Item flavor text lives under `text` (Pokémon species use `flavor_text`)
+    description: cleanFlavorText(
+      englishEntry(item.flavor_text_entries)?.text ?? ""
+    ),
+    price: latestPurchasePrice(item.prices),
+    attributes: item.attributes.map(({ name }) => name),
+    heldBy: item.held_by_pokemon.map(({ pokemon }) => ({
+      id: idFromUrl(pokemon.url),
+      name: pokemon.name,
+    })),
+  };
+};
+
+// Prices are listed per game, oldest first. Returns null when the API has no
+// purchase price (many items, e.g. Potion, simply have no price data).
+const latestPurchasePrice = (prices) =>
+  prices.findLast((price) => price.purchase_price)?.purchase_price ?? null;
