@@ -2,12 +2,11 @@
 
 ![Pokédex](./public/assets/pokedex-banner.png)
 
-A modern Pokédex web application built with React, Vite, Tailwind CSS, and JavaScript. This project fetches data from the [PokeAPI](https://pokeapi.co/) to display information about various Pokémon.
+A modern Pokédex web application built with React, Vite, Tailwind CSS, and JavaScript. This project fetches data from the [PokeAPI](https://pokeapi.co/) to display information about every Pokémon and item.
 
 ## Table of Contents
 
 - [Features](#features)
-- [Demo](#demo)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Technologies](#technologies)
@@ -18,14 +17,15 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 
 ## Features
 
-- Search for Pokémon by name or ID.
-- View detailed information about each Pokémon, including type, stats, abilities, and evolutions.
+- Browse all 1,025 Pokémon in National Pokédex order.
+- Browse all Pokémon items, including Poké Balls, potions, berries, and TMs.
+- Filter Pokémon by name or ID, and filter items by name.
+- View detailed information about each Pokémon, including type, stats, abilities, weaknesses, and evolutions.
+- View detailed information about each item, including its effect, description, price, and which wild Pokémon hold it.
+- Details open in a sidebar that slides in from the right.
+- Light and dark mode, which follows your system setting until you pick one.
 - Responsive design optimized for mobile and desktop.
 - Fast loading and efficient performance with Vite and Tailwind CSS.
-
-## Demo
-
-Check out the live demo: [Pokedex Live] <!-- (https://your-demo-link.com) -->
 
 ## Installation
 
@@ -50,15 +50,18 @@ To run this project locally, follow these steps:
    npm run dev
    ```
 
-4. Open your browser and navigate to `http://localhost:3000`.
+4. Open your browser and navigate to `http://localhost:5173`.
 
 ## Usage
 
 Once the development server is running, you can:
 
-- Search for any Pokémon by typing its name or ID into the search bar.
-- Click on a Pokémon to view its detailed information.
-- Use the navigation to explore different types of Pokémon.
+- Filter the Pokédex by typing a Pokémon's name or ID into the search bar.
+- Press Enter in the search bar to open a Pokémon directly. This also finds alternate forms, such as `charizard-mega-x`.
+- Click on a Pokémon to view its detailed information. Click it again to close the sidebar.
+- Click "Show more" at the bottom of the page to load more cards.
+- Use the navigation to switch between the Pokédex and Items pages.
+- Use the sun and moon button in the navigation to switch between light and dark mode.
 
 ## Technologies
 
@@ -71,13 +74,17 @@ This project was built using the following technologies:
 
 ## API Reference
 
-This project uses the [PokeAPI](https://pokeapi.co/) to fetch Pokémon data.
+This project uses the [PokeAPI](https://pokeapi.co/) to fetch Pokémon and item data. All API calls live in `src/services/pokeapi.js`.
 
 - **Base URL**: `https://pokeapi.co/api/v2/`
 - **Endpoints**:
+  - `/pokemon-species`: Get the list of every Pokémon.
   - `/pokemon/{id or name}`: Get details about a specific Pokémon.
-  - `/type/{id or name}`: Get details about a specific Pokémon type.
-  - `/ability/{id or name}`: Get details about a specific ability.
+  - `/pokemon-species/{id}`: Get a Pokémon's description and category.
+  - `/type/{id or name}`: Get details about a specific Pokémon type, used to work out weaknesses.
+  - `/evolution-chain/{id}`: Get a Pokémon's evolutions.
+  - `/item`: Get the list of every item.
+  - `/item/{id or name}`: Get details about a specific item.
 
 For more information, visit the [PokeAPI documentation](https://pokeapi.co/docs/v2).
 
@@ -92,11 +99,12 @@ pokedex/
 │   ├── assets/        # Project-specific images and files
 │   ├── components/    # Reusable React components
 │   ├── constants/     # Reusable variables
-│   ├── pages/         # Page components (e.g., Home, Details)
+│   ├── hooks/         # Custom React hooks (data loading, sidebar, theme)
+│   ├── pages/         # Page components (e.g., Pokedex, Items)
 │   ├── services/      # API service functions
-│   ├── utils/         # Asset source
+│   ├── utils/         # Small helper functions (e.g., formatting names)
 │   ├── App.jsx        # Main application component
-│   ├── index.css      # Tailwind CSS imports and global styles
+│   ├── index.css      # Tailwind CSS imports, global styles, and theme colors
 │   └── main.jsx       # Entry point for React
 ├── .gitignore         # Git ignore file
 ├── package.json       # NPM dependencies and scripts
