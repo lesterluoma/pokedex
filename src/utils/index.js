@@ -1,6 +1,9 @@
 /** 7 -> "N°007" */
 export const formatPokedexNumber = (id) => `N°${String(id).padStart(3, "0")}`;
 
+/** " Mr Mime " -> "mr-mime", so typed text matches API names. */
+export const toSlug = (text) => text.trim().toLowerCase().replace(/\s+/g, "-");
+
 /** "mr-mime" -> "mr mime" (CSS `capitalize` handles the casing) */
 export const formatName = (name) => name.replace(/-/g, " ");
 

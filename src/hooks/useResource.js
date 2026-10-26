@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+// For loaders that take no argument (e.g. "fetch the whole list").
+// useResource treats null as "don't load", so pass this fixed value instead.
+export const NO_ARG = "no-arg";
+
 /**
  * Runs `loader(arg)` whenever `arg` changes and tracks the result.
  * Pass `arg = null` to skip loading.

@@ -1,9 +1,8 @@
-// Grid shows the original 151 (Bulbasaur through Mew).
-export const GRID_POKEMON_COUNT = 151;
 // Highest National Pokédex number. Used to hide the "next" button.
 export const MAX_POKEDEX_ID = 1025;
-// Item cards rendered per "Show more" click on the Items page.
-export const ITEMS_PAGE_SIZE = 120;
+// Cards rendered per "Show more" click on the Pokédex and Items pages.
+// Each Pokémon card makes its own request, so keep this modest.
+export const GRID_PAGE_SIZE = 120;
 
 // Tailwind only ships classes it can find as full strings in the source,
 // so every type/stat class is spelled out here instead of built dynamically.

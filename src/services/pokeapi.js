@@ -38,6 +38,18 @@ const toApiKey = (idOrName) => {
   return key.replace(/[.']/g, "").replace(/\s+/g, "-");
 };
 
+/**
+ * Every Pokémon in National Pokédex order: [{ id: 1, name: "bulbasaur" }, ...]
+ * Uses /pokemon-species (one entry per Pokédex number) rather than /pokemon,
+ * which also lists ~300 alternate forms like "charizard-mega-x".
+ */
+export const getPokemonList = async () => {
+  const { results } = await fetchJson(
+    `${BASE_URL}/pokemon-species?limit=10000`,
+  );
+  return results.map(({ name, url }) => ({ id: idFromUrl(url), name }));
+};
+
 /** Raw /pokemon/{idOrName} response. Used by the grid cards and search. */
 export const getPokemon = (idOrName) =>
   fetchJson(`${BASE_URL}/pokemon/${toApiKey(idOrName)}`);
@@ -64,7 +76,7 @@ export const getPokemonDetails = async (id) => {
     types: pokemon.types.map(({ type }) => type.name),
     genus: englishEntry(species.genera)?.genus ?? "",
     description: cleanFlavorText(
-      englishEntry(species.flavor_text_entries)?.flavor_text ?? ""
+      englishEntry(species.flavor_text_entries)?.flavor_text ?? "",
     ),
     abilities: pokemon.abilities.map(({ ability, is_hidden }) => ({
       name: ability.name,
@@ -160,7 +172,7 @@ export const getItemDetails = async (id) => {
     effect: englishEntry(item.effect_entries)?.short_effect ?? "",
     // Item flavor text lives under `text` (Pokémon species use `flavor_text`)
     description: cleanFlavorText(
-      englishEntry(item.flavor_text_entries)?.text ?? ""
+      englishEntry(item.flavor_text_entries)?.text ?? "",
     ),
     price: latestPurchasePrice(item.prices),
     attributes: item.attributes.map(({ name }) => name),
