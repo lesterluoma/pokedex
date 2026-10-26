@@ -13,11 +13,12 @@ const App = () => (
   <Router>
     {/* overflow-x-clip: the closed sidebar sits just off-screen to the right */}
     <div className="relative min-h-screen overflow-x-clip">
-      {/* Decorative pokéball in the top-left corner */}
+      {/* Decorative pokéball in the top-left corner. The SVG is a fixed light
+          gray, so it's faded way down in dark mode. */}
       <img
         src="/assets/background.svg"
         alt=""
-        className="pointer-events-none absolute -left-60 -top-60 -z-10 h-[800px] w-[800px]"
+        className="pointer-events-none absolute -left-60 -top-60 -z-10 h-[800px] w-[800px] dark:opacity-5"
       />
 
       <main className="mx-auto max-w-6xl px-4 pb-16">

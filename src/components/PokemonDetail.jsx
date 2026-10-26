@@ -30,7 +30,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-16 text-center">
             <Header pokemon={pokemon} />
             <Section title="Pokédex Entry">
-              <p className="text-sm text-gray-600">{pokemon.description}</p>
+              <p className="text-sm text-subtle">{pokemon.description}</p>
             </Section>
             <Section title="Abilities">
               <Abilities abilities={pokemon.abilities} />
@@ -74,13 +74,13 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
 
 const Header = ({ pokemon }) => (
   <>
-    <p className="text-sm font-semibold text-gray-400">
+    <p className="text-sm font-semibold text-muted">
       {formatPokedexNumber(pokemon.id)}
     </p>
     <h2 className="text-2xl font-bold capitalize">
       {formatName(pokemon.name)}
     </h2>
-    <p className="text-sm text-gray-400">{pokemon.genus}</p>
+    <p className="text-sm text-muted">{pokemon.genus}</p>
     <div className="mt-3 flex justify-center gap-2">
       {pokemon.types.map((type) => (
         <TypeBadge key={type} type={type} />
@@ -101,7 +101,7 @@ const Abilities = ({ abilities }) => (
         <span className="block truncate">{formatName(name)}</span>
         {/* Small tag sitting on the border, so the name stays on one line */}
         {isHidden && (
-          <span className="absolute -top-2 right-4 bg-white px-1 text-[10px] font-semibold uppercase leading-none text-red">
+          <span className="absolute -top-2 right-4 bg-surface px-1 text-[10px] font-semibold uppercase leading-none text-red">
             hidden
           </span>
         )}
@@ -151,7 +151,7 @@ const Evolutions = ({ evolutions, onSelect }) => (
     {evolutions.map(({ id, name, trigger }) => (
       <div key={id} className="flex items-center gap-2">
         {trigger && (
-          <span className="rounded-full bg-page px-3 py-1 text-xs font-semibold capitalize text-gray-500">
+          <span className="rounded-full bg-page px-3 py-1 text-xs font-semibold capitalize text-subtle">
             {trigger}
           </span>
         )}
@@ -190,14 +190,14 @@ const NeighborButton = ({ id, onSelect, isNext = false }) => {
     <button
       type="button"
       onClick={() => onSelect(id)}
-      className={`flex items-center gap-1 rounded-xl px-2 py-1 capitalize hover:bg-white ${
+      className={`flex items-center gap-1 rounded-xl px-2 py-1 capitalize hover:bg-surface ${
         isNext ? "flex-row-reverse" : ""
       }`}
     >
-      <span className="text-gray-400">{isNext ? "›" : "‹"}</span>
+      <span className="text-muted">{isNext ? "›" : "‹"}</span>
       <img src={spriteUrl(id)} alt="" className="pixelated h-8 w-8" />
       {pokemon && formatName(pokemon.name)}
-      <span className="text-gray-400">#{id}</span>
+      <span className="text-muted">#{id}</span>
     </button>
   );
 };

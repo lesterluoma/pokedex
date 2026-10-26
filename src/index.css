@@ -2,8 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme colors as "R G B" channels, used through tailwind.config.js
+ * (e.g. `bg-surface`). To tweak a color, change it here only.
+ */
+:root {
+  color-scheme: light;
+  --color-page: 246 248 252;
+  --color-surface: 255 255 255;
+  --color-ink: 31 35 64;
+  --color-subtle: 75 85 99;
+  --color-muted: 156 163 175;
+  --color-blue: 59 76 202;
+  --color-blue-soft: 238 241 246;
+}
+
+.dark {
+  color-scheme: dark; /* dark scrollbars and form controls */
+  --color-page: 18 20 31;
+  --color-surface: 29 32 49;
+  --color-ink: 232 234 246;
+  --color-subtle: 176 182 204;
+  --color-muted: 128 134 158;
+  --color-blue: 139 155 255;
+  --color-blue-soft: 42 47 74;
+}
+
 body {
-  @apply bg-page font-sans text-ink antialiased;
+  @apply bg-page font-sans text-ink antialiased transition-colors;
 }
 
 /* Keeps the small game sprites crisp instead of blurry when scaled up. */

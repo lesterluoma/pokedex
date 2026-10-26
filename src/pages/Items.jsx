@@ -76,7 +76,7 @@ const Items = () => {
 };
 
 const Status = ({ children }) => (
-  <p className="mt-10 text-center text-sm text-gray-400">{children}</p>
+  <p className="mt-10 text-center text-sm text-muted">{children}</p>
 );
 
 export default Items;

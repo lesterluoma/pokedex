@@ -10,12 +10,12 @@ const ItemCard = ({ id, name, isSelected, onSelect }) => (
     type="button"
     onClick={() => onSelect(id)}
     aria-pressed={isSelected}
-    className={`flex h-36 w-full flex-col items-center justify-center rounded-3xl bg-white px-3 shadow-sm transition
+    className={`flex h-36 w-full flex-col items-center justify-center rounded-3xl bg-surface px-3 shadow-sm transition
       hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red
       ${isSelected ? "ring-2 ring-red" : ""}`}
   >
     <ItemSprite src={itemSpriteUrl(name)} alt={name} className="h-12 w-12" />
-    <p className="mt-2 text-xs font-semibold text-gray-400">
+    <p className="mt-2 text-xs font-semibold text-muted">
       {formatPokedexNumber(id)}
     </p>
     <h2 className="mt-0.5 line-clamp-2 text-sm font-bold capitalize">

@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { NAV_ITEMS } from "../constants";
 import Icon from "./Icon";
+import ThemeToggle from "./ThemeToggle";
 
 const NavItem = ({ label, svgPath, href }) => (
   <NavLink
@@ -9,7 +10,7 @@ const NavItem = ({ label, svgPath, href }) => (
       `flex items-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors ${
         isActive
           ? "border-red text-red"
-          : "border-transparent text-gray-500 hover:text-red"
+          : "border-transparent text-subtle hover:text-red"
       }`
     }
   >
@@ -20,12 +21,13 @@ const NavItem = ({ label, svgPath, href }) => (
 );
 
 const Navbar = () => (
-  <header className="mt-6 rounded-2xl bg-white px-4 shadow-sm sm:px-8">
-    <nav className="flex justify-around">
+  <header className="mt-6 flex items-center gap-2 rounded-2xl bg-surface px-4 shadow-sm sm:px-8">
+    <nav className="flex flex-1 justify-around">
       {NAV_ITEMS.map((item) => (
         <NavItem key={item.href} {...item} />
       ))}
     </nav>
+    <ThemeToggle />
   </header>
 );
 

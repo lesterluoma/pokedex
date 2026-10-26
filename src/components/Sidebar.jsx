@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, onClose, children }) => (
     {/* Backdrop (small screens only) */}
     <div
       onClick={onClose}
-      className={`fixed inset-0 z-20 bg-ink/30 transition-opacity duration-500 lg:hidden ${
+      className={`fixed inset-0 z-20 bg-black/40 transition-opacity duration-500 lg:hidden ${
         isOpen ? "opacity-100" : "pointer-events-none opacity-0"
       }`}
     />

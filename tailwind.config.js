@@ -1,23 +1,33 @@
 import defaultTheme from "tailwindcss/defaultTheme";
 
+// Colors that change between light and dark mode. The actual values are CSS
+// variables in src/index.css (`:root` = light, `.dark` = dark). Written this
+// way so opacity modifiers like `bg-ink/30` still work.
+const themeColor = (name) => `rgb(var(--color-${name}) / <alpha-value>)`;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  // Dark mode is on when <html> has the "dark" class (see useTheme.js).
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
         sans: ["Poppins", ...defaultTheme.fontFamily.sans],
       },
       colors: {
-        page: "#f6f8fc", // app background
-        ink: "#1f2340", // headings
+        page: themeColor("page"), // app background
+        surface: themeColor("surface"), // cards, panels, navbar
+        ink: themeColor("ink"), // headings and main text
+        subtle: themeColor("subtle"), // body text
+        muted: themeColor("muted"), // secondary text (numbers, hints)
         red: {
           DEFAULT: "#ff5350",
           dark: "#cc0000",
         },
         blue: {
-          DEFAULT: "#3b4cca",
-          soft: "#eef1f6",
+          DEFAULT: themeColor("blue"),
+          soft: themeColor("blue-soft"),
         },
         yellow: "#ffde00",
         // DEFAULT = badge background, text = badge text
