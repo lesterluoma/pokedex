@@ -17,10 +17,13 @@ export const useFilteredList = (list, matches) => {
   const query = queryParam ?? "";
   const [visibleCount, setVisibleCount] = useState(GRID_PAGE_SIZE);
 
+  // Back to the first page. Call this when another filter changes the list.
+  const resetPage = () => setVisibleCount(GRID_PAGE_SIZE);
+
   const changeQuery = (text) => {
     // `replace` so each keystroke doesn't add a Back button step.
     setQueryParam(text, { replace: true });
-    setVisibleCount(GRID_PAGE_SIZE);
+    resetPage();
   };
 
   const filtered = (list ?? []).filter((entry) => matches(entry, query));
@@ -28,6 +31,7 @@ export const useFilteredList = (list, matches) => {
   return {
     query,
     changeQuery,
+    resetPage,
     matchCount: filtered.length,
     visible: filtered.slice(0, visibleCount),
     remaining: Math.max(filtered.length - visibleCount, 0),

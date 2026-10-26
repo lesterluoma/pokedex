@@ -3,9 +3,12 @@ import PokemonCard from "../components/PokemonCard";
 import PokemonDetail from "../components/PokemonDetail";
 import Searchbar from "../components/Searchbar";
 import Sidebar from "../components/Sidebar";
+import TypeFilter from "../components/TypeFilter";
+import { POKEMON_TYPES } from "../constants";
 import { useFilteredList } from "../hooks/useFilteredList";
-import { usePokemonList } from "../hooks/usePokemon";
+import { usePokemonIdsOfType, usePokemonList } from "../hooks/usePokemon";
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
+import { useSearchParam } from "../hooks/useSearchParam";
 import { useSidebarSelection } from "../hooks/useSidebarSelection";
 import { toSlug } from "../utils";
 
@@ -16,9 +19,31 @@ const matchesNameOrNumber = (pokemon, query) => {
   return pokemon.name.includes(toSlug(query));
 };
 
+// Keeps only the Pokémon whose id is in `typeIds`.
+// Returns null while either list is still loading.
+const filterByType = (pokemonList, typeIds) => {
+  if (!pokemonList || !typeIds) return null;
+  const ids = new Set(typeIds);
+  return pokemonList.filter((pokemon) => ids.has(pokemon.id));
+};
+
 const Pokedex = () => {
-  const { data: pokemonList, error, isLoading } = usePokemonList();
+  const allPokemon = usePokemonList();
+
+  // The type filter lives in the address bar as `?type=fire`.
+  // Unknown values (e.g. "?type=banana") are ignored.
+  const [typeParam, setTypeParam] = useSearchParam("type");
+  const type = POKEMON_TYPES.includes(typeParam) ? typeParam : null;
+  const typeIds = usePokemonIdsOfType(type);
+
+  // The type filter runs first, then the text filter inside useFilteredList.
+  const pokemonList = type
+    ? filterByType(allPokemon.data, typeIds.data)
+    : allPokemon.data;
   const grid = useFilteredList(pokemonList, matchesNameOrNumber);
+  const isLoading = allPokemon.isLoading || typeIds.isLoading;
+  const error = allPokemon.error || typeIds.error;
+
   const sidebar = useSidebarSelection();
   // Typing filters the grid; pressing Enter also opens an exact match in
   // the sidebar.
@@ -29,6 +54,12 @@ const Pokedex = () => {
     grid.changeQuery(text);
   };
 
+  const handleTypeChange = (newType) => {
+    // `replace` like the text filter, so Back doesn't step through each type.
+    setTypeParam(newType, { replace: true });
+    grid.resetPage();
+  };
+
   return (
     <>
       <Searchbar
@@ -37,13 +68,19 @@ const Pokedex = () => {
         initialQuery={grid.query}
         error={pokemonSearch.error}
       />
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <TypeFilter value={type} onChange={handleTypeChange} />
+      </div>
 
       {isLoading && <StatusMessage>Loading Pokémon...</StatusMessage>}
       {error && (
         <StatusMessage>Couldn&apos;t load Pokémon. Try refreshing.</StatusMessage>
       )}
       {pokemonList && grid.matchCount === 0 && (
-        <StatusMessage>No Pokémon match &quot;{grid.query}&quot;.</StatusMessage>
+        <StatusMessage>
+          No {type && <span className="capitalize">{type}-type </span>}
+          Pokémon match &quot;{grid.query}&quot;.
+        </StatusMessage>
       )}
 
       <div className="mt-20 flex items-start">

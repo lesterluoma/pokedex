@@ -41,3 +41,6 @@ export const randomPokemonId = () =>
  * `id` is the query parameter read by useSidebarSelection.
  */
 export const pokedexPath = (id) => `/pokedex?id=${id}`;
+
+/** Address of the Pokédex page filtered to one type, e.g. "/pokedex?type=fire". */
+export const pokedexTypePath = (type) => `/pokedex?type=${type}`;

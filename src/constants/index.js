@@ -28,6 +28,10 @@ export const TYPE_CLASSES = {
   fairy: "bg-types-fairy text-types-fairy-text",
 };
 
+// The 18 Pokémon types, in the order shown on the Home page and in the
+// Pokédex type filter.
+export const POKEMON_TYPES = Object.keys(TYPE_CLASSES);
+
 // Keyed by the stat names the API returns.
 export const STATS = {
   hp: { label: "HP", className: "bg-stats-hp" },

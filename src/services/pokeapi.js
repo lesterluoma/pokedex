@@ -1,6 +1,8 @@
 // All PokeAPI access lives here. Components never call fetch() directly.
 // Every function throws on failure, so callers can catch and show an error.
 
+import { MAX_POKEDEX_ID } from "../constants";
+
 const BASE_URL = "https://pokeapi.co/api/v2";
 
 // Cache of in-flight/finished requests keyed by URL. The grid card and the
@@ -187,3 +189,19 @@ export const getItemDetails = async (id) => {
 // purchase price (many items, e.g. Potion, simply have no price data).
 const latestPurchasePrice = (prices) =>
   prices.findLast((price) => price.purchase_price)?.purchase_price ?? null;
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/**
+ * Pokédex numbers of every Pokémon with this type, e.g. "fire" -> [4, 5, 6, ...].
+ * The API also lists alternate forms (ids above 10000); those are dropped
+ * so the result lines up with getPokemonList().
+ */
+export const getPokemonIdsOfType = async (type) => {
+  const { pokemon } = await fetchJson(`${BASE_URL}/type/${type}`);
+  return pokemon
+    .map(({ pokemon }) => idFromUrl(pokemon.url))
+    .filter((id) => id <= MAX_POKEDEX_ID);
+};

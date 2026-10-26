@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import BrowseByType from "../components/BrowseByType";
 import FeaturedPokemon from "../components/FeaturedPokemon";
 import Searchbar from "../components/Searchbar";
 import ShortcutCard from "../components/ShortcutCard";
@@ -61,6 +62,8 @@ const Home = () => {
           />
         </div>
       </div>
+
+      <BrowseByType />
     </>
   );
 };
