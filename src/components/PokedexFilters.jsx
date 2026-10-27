@@ -2,6 +2,7 @@ import {
   HEIGHT_RANGES,
   MAX_POKEDEX_ID,
   POKEMON_TYPES,
+  REGIONS,
   WEIGHT_RANGES,
 } from "../constants";
 import { capitalize, toTitleCase } from "../utils";
@@ -9,6 +10,7 @@ import { FilterBar, FilterSelect, FilterTextField } from "./FilterControls";
 import {
   AbilityIcon,
   HeightIcon,
+  RegionIcon,
   TypeIcon,
   WeaknessIcon,
   WeightIcon,
@@ -52,6 +54,13 @@ const PokedexFilters = ({
     onReset={onReset}
     isActive={isActive}
   >
+    <FilterSelect
+      icon={<RegionIcon />}
+      label="Region"
+      value={filters.region}
+      options={toOptions(REGIONS)}
+      onChange={(value) => onChange("region", value)}
+    />
     <FilterSelect
       icon={<TypeIcon />}
       label="Type"

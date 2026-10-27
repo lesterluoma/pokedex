@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import BrowseByType from "../components/BrowseByType";
 import FeaturedPokemon from "../components/FeaturedPokemon";
 import Searchbar from "../components/Searchbar";
+import { ItemsIcon, PokeballIcon } from "../components/Icon";
 import ShortcutCard from "../components/ShortcutCard";
-import { ITEMS_SVG_PATH, POKEBALL_SVG_PATH } from "../constants";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useItemList } from "../hooks/useItems";
 import { usePokemonList } from "../hooks/usePokemon";
@@ -51,14 +51,14 @@ const Home = () => {
         <div className="flex flex-col gap-6">
           <ShortcutCard
             to="/pokedex"
-            svgPath={POKEBALL_SVG_PATH}
+            icon={<PokeballIcon className="h-8 w-8" />}
             count={pokemonList?.length}
             title="Pokémon"
             description="Every Pokémon, with stats, weaknesses and evolutions."
           />
           <ShortcutCard
             to="/items"
-            svgPath={ITEMS_SVG_PATH}
+            icon={<ItemsIcon className="h-8 w-8" />}
             count={items?.length}
             title="Items"
             description="Poké Balls, potions, berries, TMs and more."

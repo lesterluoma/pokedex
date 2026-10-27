@@ -1,14 +1,14 @@
-// The Pokédex filters (type, weakness, ability, height, weight, from, to)
+// The Pokédex filters (region, type, weakness, ability, height, weight, from, to)
 // as plain functions. No React here: the Pokédex page reads the values from
 // the address bar with useUrlFilters(readPokedexFilters) and passes them to
 // filterPokemon().
 
-import { HEIGHT_RANGES, POKEMON_TYPES, WEIGHT_RANGES } from "../constants";
+import { HEIGHT_RANGES, POKEMON_TYPES, REGIONS, WEIGHT_RANGES } from "../constants";
 import { isInIdRange, oneOf, toWholeNumber } from "./filterHelpers";
 import { toSlug } from "./index";
 
 // Filters that need the Pokédex index (getPokedexIndex in services/pokeapi.js).
-// "from" and "to" only compare Pokédex numbers, so they work without it.
+// "region", "from" and "to" only compare Pokédex numbers, so they work without it.
 const INDEX_FILTERS = ["type", "weakness", "ability", "height", "weight"];
 
 /**
@@ -17,6 +17,7 @@ const INDEX_FILTERS = ["type", "weakness", "ability", "height", "weight"];
  * as null, which means "not filtering".
  */
 export const readPokedexFilters = (params) => ({
+  region: oneOf(params.get("region"), Object.keys(REGIONS)),
   type: oneOf(params.get("type"), POKEMON_TYPES),
   weakness: oneOf(params.get("weakness"), POKEMON_TYPES),
   ability: params.get("ability") || null, // free text, e.g. "solar power"
@@ -37,8 +38,13 @@ const isInRange = (value, { min, max }) => value >= min && value < max;
  * the Pokédex index (only needed when needsPokedexIndex(filters) is true).
  */
 const matchesFilters = (pokemon, details, filters) => {
-  const { type, weakness, ability, height, weight, from, to } = filters;
+  const { region, type, weakness, ability, height, weight, from, to } = filters;
 
+  // A region and a from/to range both apply, so "?region=johto&to=200"
+  // shows #152 to #200.
+  if (region && !isInIdRange(pokemon.id, REGIONS[region].min, REGIONS[region].max)) {
+    return false;
+  }
   if (!isInIdRange(pokemon.id, from, to)) return false;
   if (!needsPokedexIndex(filters)) return true;
   if (!details) return false;

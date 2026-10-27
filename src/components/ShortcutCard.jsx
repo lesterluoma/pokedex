@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
-import Icon from "./Icon";
 
 /**
  * Big link card on the Home page, e.g. "1,025 Pokémon >".
+ * `icon` is an icon element, e.g. <PokeballIcon className="h-8 w-8" />.
  * `count` is a number, or null while it's still loading.
  */
-const ShortcutCard = ({ to, svgPath, count, title, description }) => (
+const ShortcutCard = ({ to, icon, count, title, description }) => (
   <Link
     to={to}
     className="group flex items-center gap-4 rounded-3xl bg-surface p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red"
   >
     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red/10 text-red">
-      <Icon path={svgPath} className="h-8 w-8" />
+      {icon}
     </div>
     <div className="min-w-0 flex-1">
       <p className="text-2xl font-bold">

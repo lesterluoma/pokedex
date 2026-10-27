@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { POKEBALL_SVG_PATH } from "../constants";
-import Icon from "./Icon";
+import { PokeballIcon } from "./Icon";
 
 /**
  * Just a form; the actual lookup happens in the parent page.
@@ -44,7 +43,7 @@ const Searchbar = ({
           aria-label="Search"
           className="rounded-xl bg-red p-2 text-white shadow-lg shadow-red/40 transition hover:bg-red-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-red focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          <Icon path={POKEBALL_SVG_PATH} className="h-7 w-7" />
+          <PokeballIcon className="h-7 w-7" />
         </button>
       </div>
       {error && <p className="mt-2 pl-5 text-sm text-red">{error}</p>}

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   HEIGHT_RANGES,
+  MAX_POKEDEX_ID,
   POKEMON_TYPES,
+  REGIONS,
   STATS,
   TYPE_CLASSES,
   WEIGHT_RANGES,
@@ -30,5 +32,13 @@ describe("constants", () => {
     expect(list[0].min).toBe(0);
     list.slice(1).forEach((range, i) => expect(range.min).toBe(list[i].max));
     expect(list.at(-1).max).toBe(Infinity);
+  });
+
+  // A gap or overlap would leave Pokémon out of every region, or in two.
+  it("has regions that cover every Pokédex number once, in order", () => {
+    const list = Object.values(REGIONS);
+    expect(list[0].min).toBe(1);
+    list.slice(1).forEach((region, i) => expect(region.min).toBe(list[i].max + 1));
+    expect(list.at(-1).max).toBe(MAX_POKEDEX_ID);
   });
 });

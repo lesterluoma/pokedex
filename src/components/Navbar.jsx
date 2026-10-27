@@ -1,9 +1,14 @@
 import { NavLink } from "react-router-dom";
-import { NAV_ITEMS } from "../constants";
-import Icon from "./Icon";
+import { HomeIcon, ItemsIcon, PokeballIcon } from "./Icon";
 import ThemeToggle from "./ThemeToggle";
 
-const NavItem = ({ label, svgPath, href }) => (
+const NAV_ITEMS = [
+  { label: "Home", href: "/", Icon: HomeIcon },
+  { label: "Pokédex", href: "/pokedex", Icon: PokeballIcon },
+  { label: "Items", href: "/items", Icon: ItemsIcon },
+];
+
+const NavItem = ({ label, href, Icon }) => (
   <NavLink
     to={href}
     // Without `end`, the "/" link would count as active on every page.
@@ -16,7 +21,7 @@ const NavItem = ({ label, svgPath, href }) => (
       }`
     }
   >
-    <Icon path={svgPath} className="h-7 w-7" />
+    <Icon className="h-6 w-6" />
     {/* Icons only on phones; the label is still read by screen readers */}
     <span className="max-sm:sr-only">{label}</span>
   </NavLink>

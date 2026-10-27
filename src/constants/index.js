@@ -8,6 +8,21 @@ export const MAX_POKEDEX_ID = 1025;
 // Each Pokémon card makes its own request, so keep this modest.
 export const GRID_PAGE_SIZE = 120;
 
+// Options for the Pokédex region filter, keyed by the value stored in the
+// address bar (e.g. "?region=kanto"), in display order. Each region covers
+// the National Pokédex numbers its generation added, both ends included.
+export const REGIONS = {
+  kanto: { label: "Kanto", min: 1, max: 151 },
+  johto: { label: "Johto", min: 152, max: 251 },
+  hoenn: { label: "Hoenn", min: 252, max: 386 },
+  sinnoh: { label: "Sinnoh", min: 387, max: 493 },
+  unova: { label: "Unova", min: 494, max: 649 },
+  kalos: { label: "Kalos", min: 650, max: 721 },
+  alola: { label: "Alola", min: 722, max: 809 },
+  galar: { label: "Galar", min: 810, max: 905 },
+  paldea: { label: "Paldea", min: 906, max: 1025 },
+};
+
 // Options for the Pokédex height and weight filters, keyed by the value
 // stored in the address bar (e.g. "?height=tall"). `min` counts as inside
 // the range, `max` doesn't, so 1 m is "medium", not "short".
@@ -83,29 +98,3 @@ export const STATS = {
   "special-defense": { label: "SpD", className: "bg-stats-special-defense" },
   speed: { label: "SPD", className: "bg-stats-speed" },
 };
-
-export const NAV_ITEMS = [
-  {
-    label: "Home",
-    href: "/",
-    svgPath:
-      "m6.4883 43.895 36.562-32.852c3.9727-3.5664 9.9219-3.5664 13.895 0l36.562 32.852c3.0547 2.7461 1.0664 7.8047-2.9922 7.8047h-6.6602v29.535c0 5.7305-4.668 10.395-10.395 10.395l-46.922 0.003906c-5.7305 0-10.395-4.6641-10.395-10.395v-29.539h-6.6602c-4.0703 0-6.043-5.0664-2.9961-7.8047zm40.574-28.398-33.617 30.203h5.6992c1.6562 0 3 1.3438 3 3v32.535c0 2.4141 1.9805 4.3945 4.3945 4.3945h46.922c2.418 0 4.3945-1.9805 4.3945-4.3945v-32.535c0-1.6562 1.3438-3 3-3h5.6992l-33.617-30.203c-1.6758-1.5039-4.1992-1.5039-5.875 0z",
-  },
-  {
-    label: "Pokédex",
-    href: "/pokedex",
-    svgPath:
-      "m27.371 27.371c-6.0039 6-9.375 14.141-9.375 22.625 0 8.4883 3.3711 16.629 9.3711 22.629 6 6.0039 14.141 9.375 22.629 9.375 8.4844 0 16.625-3.3711 22.629-9.375 6-6 9.3711-14.141 9.3711-22.629 0-8.4844-3.375-16.625-9.375-22.625-5.9727-6.0547-14.121-9.4609-22.625-9.4609s-16.652 3.4062-22.625 9.4609zm5.6289 5.6289c4.1758-4.1836 9.7461-6.6797 15.648-7.0078 5.9023-0.33203 11.715 1.5273 16.332 5.2188 4.6172 3.6953 7.707 8.9609 8.6797 14.789h-10.25c-1.7695-5.9297-7.2266-9.9961-13.414-9.9961-6.1914 0-11.645 4.0664-13.418 9.9961h-10.238c0.80469-4.9258 3.1328-9.4727 6.6602-13zm21.238 21.238c-1.7148 1.7148-4.2969 2.2266-6.5352 1.3008-2.2422-0.92969-3.7031-3.1172-3.7031-5.543 0-2.4258 1.4609-4.6133 3.7031-5.543 2.2383-0.92969 4.8203-0.41797 6.5352 1.2969 1.1289 1.125 1.7617 2.6523 1.7617 4.2461 0 1.5898-0.63281 3.1172-1.7617 4.2422zm12.762 12.762c-4.5039 4.5195-10.621 7.0586-17 7.0586s-12.496-2.5391-17-7.0586c-3.5391-3.5234-5.8789-8.0742-6.6914-13h10.281c1.7695 5.9297 7.2266 9.9961 13.414 9.9961 6.1914 0 11.645-4.0664 13.418-9.9961h10.238c-0.80469 4.9258-3.1328 9.4727-6.6602 13z",
-  },
-  {
-    label: "Items",
-    href: "/items",
-    svgPath:
-      "m20.629 26.551h11.93v-4.1016c0-15.363 18.727-23.359 29.766-12.32 3.1602 3.1602 5.1211 7.5234 5.1211 12.32v4.1016h11.93c1.6562 0 3 1.3438 3 3v53.797c0 6.418-5.2383 11.656-11.656 11.656h-41.434c-6.418 0-11.656-5.2383-11.656-11.656v-53.797c0-1.6562 1.3438-3 3-3zm17.926 0h22.887c0-4.6953 0.41406-8.4023-3.3633-12.18-7.2656-7.2656-19.523-1.957-19.523 8.0781zm0 9.168h22.887v-3.168h-22.887zm25.891 6h-28.887c-1.6562 0-3-1.3438-3-3v-6.168h-8.9297v50.797c0 3.1055 2.5508 5.6562 5.6562 5.6562h41.43c3.1055 0 5.6562-2.5508 5.6562-5.6562v-50.797h-8.9297v6.168c0 1.6523-1.3398 3-2.9961 3z",
-  },
-];
-
-// Pokéball icon, shared by the Pokédex nav item and the search button.
-export const POKEBALL_SVG_PATH = NAV_ITEMS[1].svgPath;
-// Shopping bag icon, shared by the Items nav item and the Home shortcut.
-export const ITEMS_SVG_PATH = NAV_ITEMS[2].svgPath;

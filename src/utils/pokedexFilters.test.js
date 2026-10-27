@@ -60,8 +60,9 @@ const namesFor = (query) =>
 describe("readPokedexFilters", () => {
   it("reads every filter from the address", () => {
     expect(
-      filtersFor("type=fire&weakness=water&ability=blaze&height=tall&weight=heavy&from=1&to=151")
+      filtersFor("region=kanto&type=fire&weakness=water&ability=blaze&height=tall&weight=heavy&from=1&to=151")
     ).toEqual({
+      region: "kanto",
       type: "fire",
       weakness: "water",
       ability: "blaze",
@@ -73,7 +74,8 @@ describe("readPokedexFilters", () => {
   });
 
   it("ignores values that aren't valid", () => {
-    expect(filtersFor("type=banana&height=huge&from=abc&to=-5")).toEqual({
+    expect(filtersFor("region=narnia&type=banana&height=huge&from=abc&to=-5")).toEqual({
+      region: null,
       type: null,
       weakness: null,
       ability: null,
@@ -86,6 +88,7 @@ describe("readPokedexFilters", () => {
 
   it("knows which filters need the index", () => {
     expect(needsPokedexIndex(filtersFor("from=1&to=151"))).toBe(false);
+    expect(needsPokedexIndex(filtersFor("region=johto"))).toBe(false);
     expect(needsPokedexIndex(filtersFor("type=fire"))).toBe(true);
   });
 });
@@ -105,6 +108,15 @@ describe("filterPokemon", () => {
 
   it("filters by number range, including both ends", () => {
     expect(namesFor("from=4&to=6")).toEqual(["charmander", "charizard"]);
+  });
+
+  it("filters by region, together with the number range", () => {
+    const list = [...LIST, { id: 151, name: "mew" }, { id: 152, name: "chikorita" }];
+    const namesIn = (query) =>
+      filterPokemon(list, null, filtersFor(query)).map((pokemon) => pokemon.name);
+    expect(namesIn("region=kanto")).toEqual(LIST.map((p) => p.name).concat("mew"));
+    expect(namesIn("region=johto")).toEqual(["chikorita"]);
+    expect(namesIn("region=kanto&from=6&to=200")).toEqual(["charizard", "geodude", "mew"]);
   });
 
   it("filters by type, including second types", () => {

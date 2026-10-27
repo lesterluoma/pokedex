@@ -1,29 +1,17 @@
-// Small outline icons for the Pokédex filters, drawn on a 24x24 grid.
-// They use `currentColor`, so they take the text color of the filter.
+// Small outline icons for the filters. See Icon.jsx for the shared look.
 
-const OutlineIcon = ({ children, className = "h-4 w-4" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={`shrink-0 ${className}`}
-    aria-hidden="true"
-  >
-    {children}
-  </svg>
+import { OutlineIcon, PokeballIcon } from "./Icon";
+
+/** Region: a folded map. */
+export const RegionIcon = () => (
+  <OutlineIcon>
+    <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z" />
+    <path d="M9 3v15M15 6v15" />
+  </OutlineIcon>
 );
 
 /** Type: a pokéball. */
-export const TypeIcon = () => (
-  <OutlineIcon>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M3 12h6M15 12h6" />
-    <circle cx="12" cy="12" r="3" />
-  </OutlineIcon>
-);
+export const TypeIcon = () => <PokeballIcon />;
 
 /** Weaknesses: a shield with a crack through it. */
 export const WeaknessIcon = () => (
