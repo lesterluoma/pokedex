@@ -1,0 +1,26 @@
+# Runs on every push and pull request. If any step fails, GitHub marks the
+# commit with a red X, so a broken build (like an incompatible package
+# upgrade) shows up before anyone deploys it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json lists.
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

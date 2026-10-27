@@ -9,6 +9,7 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Testing](#testing)
 - [Technologies](#technologies)
 - [API Reference](#api-reference)
 - [Project Structure](#project-structure)
@@ -72,6 +73,26 @@ Once the development server is running, you can:
 - Use the navigation to switch between the Home, Pokédex, and Items pages.
 - Use the sun and moon button in the navigation to switch between light and dark mode.
 
+## Testing
+
+The tests check the app's logic, such as the filters, weakness calculations, evolution chains, and search. They don't call the real PokeAPI, so they run offline in under a second.
+
+- Run the tests once:
+
+  ```bash
+  npm test
+  ```
+
+- Re-run the tests every time you save a file:
+
+  ```bash
+  npm run test:watch
+  ```
+
+Test files sit next to the code they test, for example `src/utils/pokedexFilters.test.js` tests `src/utils/pokedexFilters.js`.
+
+Every push and pull request on GitHub also runs the linter, the tests, and a production build. If any of them fail, GitHub marks the commit with a red X.
+
 ## Technologies
 
 This project was built using the following technologies:
@@ -79,6 +100,7 @@ This project was built using the following technologies:
 - **React**: A JavaScript library for building user interfaces.
 - **Vite**: A fast build tool for modern web projects.
 - **Tailwind CSS**: A utility-first CSS framework for styling.
+- **Vitest**: A test runner that works with Vite.
 - **JavaScript**: The programming language used to build the logic.
 
 ## API Reference
@@ -107,6 +129,7 @@ Here's a brief overview of the project's structure:
 
 ```bash
 pokedex/
+├── .github/workflows/ # GitHub checks that run on every push
 ├── public/            # Public assets (e.g., images, favicon)
 ├── src/
 │   ├── assets/        # Project-specific images and files
@@ -115,7 +138,8 @@ pokedex/
 │   ├── hooks/         # Custom React hooks (data loading, sidebar, theme)
 │   ├── pages/         # Page components (e.g., Home, Pokedex, Items)
 │   ├── services/      # API service functions
-│   ├── utils/         # Small helper functions (e.g., formatting names)
+│   ├── utils/         # Small helper functions and filter logic
+│   ├── **/*.test.js   # Tests, next to the code they test
 │   ├── App.jsx        # Main application component
 │   ├── index.css      # Tailwind CSS imports, global styles, and theme colors
 │   └── main.jsx       # Entry point for React
