@@ -137,25 +137,72 @@ export const getPokemonDetails = async (id) => {
     })),
     weaknesses: getWeaknesses(typeData),
     evolutions: flattenEvolutionChain(evolutionChain.chain),
-    forms: listForms(species.varieties, pokemon.species.name),
+    forms: [
+      ...listForms(species.varieties, pokemon.species.name),
+      ...listLooks(pokemon),
+    ],
   };
 };
 
 /**
- * Every version of the species that has its own stats or look (Mega
- * Evolutions, regional forms, sizes, Giratina's Origin form...), default
- * first. `formName` is the name without the species, e.g. "mega-x", or ""
- * when the form is just the species name ("charizard").
- * [{ id: 6, name: "charizard", formName: "" }, { id: 10034, name: "charizard-mega-x", formName: "mega-x" }, ...]
+ * Every version of the species that has its own stats (Mega Evolutions,
+ * regional forms, sizes, Giratina's Origin form...), default first.
+ * `formName` is the name without the species, e.g. "mega-x", or "" when the
+ * form is just the species name ("charizard"). `imageKey` is what
+ * artworkUrl() and spriteUrl() in utils take.
+ * [{ id: 6, name: "charizard", formName: "", imageKey: 6, isLook: false }, ...]
  */
 const listForms = (varieties, speciesName) =>
   varieties
     .toSorted((a, b) => b.is_default - a.is_default)
-    .map(({ pokemon }) => ({
-      id: idFromUrl(pokemon.url),
-      name: pokemon.name,
-      formName: pokemon.name.replace(new RegExp(`^${speciesName}-?`), ""),
-    }));
+    .map(({ pokemon }) => {
+      const id = idFromUrl(pokemon.url);
+      return {
+        id,
+        name: pokemon.name,
+        formName: pokemon.name.replace(new RegExp(`^${speciesName}-?`), ""),
+        imageKey: id,
+        isLook: false,
+      };
+    });
+
+/**
+ * Forms that only change how this Pokémon looks, and sometimes its type
+ * (Arceus's 18 types, Unown's letters, Vivillon's patterns). They share the
+ * Pokémon's stats, so they have no /pokemon entry of their own, only a
+ * /pokemon-form one (see getPokemonForm). The first form is the default
+ * look, which is the Pokémon itself, so it's left out.
+ * Artwork is named "493-fire" (Pokémon id, then the form name).
+ * [{ id: null, name: "arceus-fire", formName: "fire", imageKey: "493-fire", isLook: true }, ...]
+ */
+const listLooks = (pokemon) =>
+  pokemon.forms.slice(1).map(({ name }) => {
+    const formName = name.replace(new RegExp(`^${pokemon.name}-?`), "");
+    return {
+      id: null,
+      name,
+      formName,
+      imageKey: `${pokemon.id}-${formName}`,
+      isLook: true,
+    };
+  });
+
+/**
+ * Types and weaknesses of one look from `forms` in getPokemonDetails, by
+ * name, e.g. "arceus-grass" -> { types: ["grass"], weaknesses: [...] }.
+ * The sidebar shows these in place of the Pokémon's own when it's picked.
+ */
+export const getPokemonForm = async (name) => {
+  const form = await fetchJson(`${BASE_URL}/pokemon-form/${name}`);
+  const typeData = await Promise.all(
+    form.types.map(({ type }) => fetchJson(type.url)),
+  );
+  return {
+    name: form.name,
+    types: form.types.map(({ type }) => type.name),
+    weaknesses: getWeaknesses(typeData),
+  };
+};
 
 // Flavor text contains form feeds and hard line breaks from the games.
 const cleanFlavorText = (text) => text.replace(/[\f\n\r]+/g, " ");

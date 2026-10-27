@@ -29,13 +29,24 @@ export const pokemonDisplayName = (pokemon) =>
 
 const SPRITES_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
 
-/** Small pixel sprite by id, without needing an extra API request. */
+/**
+ * Small pixel sprite by id, without needing an extra API request. Also takes
+ * a look's image key like "493-fire" (see `forms` in getPokemonDetails).
+ */
 export const spriteUrl = (id, isShiny = false) =>
   `${SPRITES_URL}/${isShiny ? "shiny/" : ""}${id}.png`;
 
-/** Large official artwork by id. Missing for a few rare forms. */
+/** Large official artwork by id or image key. Missing for a few rare forms. */
 export const artworkUrl = (id, isShiny = false) =>
   `${SPRITES_URL}/other/official-artwork/${isShiny ? "shiny/" : ""}${id}.png`;
+
+/**
+ * How many items of a "Show more" list to render: `pagesShown` pages of
+ * `pageSize`, but always far enough to include `keepIndex` (the open item,
+ * or -1 for none), so it's never hidden behind the button.
+ */
+export const visibleCount = (pageSize, pagesShown, keepIndex = -1) =>
+  Math.max(pagesShown, Math.floor(keepIndex / pageSize) + 1) * pageSize;
 
 /** Item sprite by name. Not every item has one, so use a fallback on error. */
 export const itemSpriteUrl = (name) =>

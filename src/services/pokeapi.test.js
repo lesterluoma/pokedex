@@ -23,6 +23,7 @@ const charizard = {
     },
   },
   species: { name: "charizard", url: `${API}/pokemon-species/6/` },
+  forms: [{ name: "charizard" }],
   types: [
     { type: { name: "fire", url: `${API}/type/10/` } },
     { type: { name: "flying", url: `${API}/type/3/` } },
@@ -56,7 +57,13 @@ const charizardSpecies = {
 };
 
 // A form that isn't the default: same species, its own id and name.
-const charizardMegaX = { ...charizard, id: 10034, name: "charizard-mega-x", is_default: false };
+const charizardMegaX = {
+  ...charizard,
+  id: 10034,
+  name: "charizard-mega-x",
+  is_default: false,
+  forms: [{ name: "charizard-mega-x" }],
+};
 
 // Giratina's default form has its own name, and there is no /pokemon/giratina.
 const giratinaAltered = {
@@ -64,6 +71,25 @@ const giratinaAltered = {
   id: 487,
   name: "giratina-altered",
   species: { name: "giratina", url: `${API}/pokemon-species/487/` },
+  forms: [{ name: "giratina-altered" }],
+};
+
+// Arceus is one Pokémon with a look per type; the first look is the default.
+const arceus = {
+  ...charizard,
+  id: 493,
+  name: "arceus",
+  species: { name: "arceus", url: `${API}/pokemon-species/493/` },
+  forms: [{ name: "arceus-normal" }, { name: "arceus-fire" }, { name: "arceus-grass" }],
+  types: [{ type: { name: "normal", url: `${API}/type/1/` } }],
+};
+const arceusSpecies = {
+  ...charizardSpecies,
+  varieties: [{ is_default: true, pokemon: { name: "arceus", url: `${API}/pokemon/493/` } }],
+};
+const arceusGrass = {
+  name: "arceus-grass",
+  types: [{ type: { name: "grass", url: `${API}/type/12/` } }],
 };
 const giratinaSpecies = {
   ...charizardSpecies,
@@ -119,6 +145,7 @@ const eevee = {
   id: 133,
   name: "eevee",
   species: { name: "eevee", url: `${API}/pokemon-species/133/` },
+  forms: [{ name: "eevee" }],
   types: [{ type: { name: "normal", url: `${API}/type/1/` } }],
 };
 
@@ -159,6 +186,14 @@ const ROUTES = {
   [`${API}/pokemon/487`]: giratinaAltered,
   [`${API}/pokemon-species/487/`]: giratinaSpecies,
   [`${API}/pokemon-species/giratina`]: giratinaSpecies,
+  [`${API}/pokemon/493`]: arceus,
+  [`${API}/pokemon-species/493/`]: arceusSpecies,
+  [`${API}/pokemon-form/arceus-grass`]: arceusGrass,
+  // Real Grass type matchups.
+  [`${API}/type/12/`]: typeRelations(
+    ["fire", "ice", "poison", "flying", "bug"],
+    ["ground", "water", "grass", "electric"]
+  ),
   [`${API}/pokemon/133`]: eevee,
   [`${API}/pokemon-species/133/`]: {
     ...charizardSpecies,
@@ -301,14 +336,23 @@ describe("getPokemonDetails", () => {
   });
 
   it("lists every form, default first, without the species in the name", async () => {
+    const form = (id, name, formName) => ({ id, name, formName, imageKey: id, isLook: false });
     expect((await api.getPokemonDetails(6)).forms).toEqual([
-      { id: 6, name: "charizard", formName: "" },
-      { id: 10034, name: "charizard-mega-x", formName: "mega-x" },
-      { id: 10196, name: "charizard-gmax", formName: "gmax" },
+      form(6, "charizard", ""),
+      form(10034, "charizard-mega-x", "mega-x"),
+      form(10196, "charizard-gmax", "gmax"),
     ]);
     expect((await api.getPokemonDetails(487)).forms).toEqual([
-      { id: 487, name: "giratina-altered", formName: "altered" },
-      { id: 10007, name: "giratina-origin", formName: "origin" },
+      form(487, "giratina-altered", "altered"),
+      form(10007, "giratina-origin", "origin"),
+    ]);
+  });
+
+  it("adds looks after the forms, leaving out the default look", async () => {
+    expect((await api.getPokemonDetails(493)).forms).toEqual([
+      { id: 493, name: "arceus", formName: "", imageKey: 493, isLook: false },
+      { id: null, name: "arceus-fire", formName: "fire", imageKey: "493-fire", isLook: true },
+      { id: null, name: "arceus-grass", formName: "grass", imageKey: "493-grass", isLook: true },
     ]);
   });
 
@@ -347,6 +391,22 @@ describe("getPokemonDetails", () => {
       { id: 134, name: "vaporeon", trigger: "water stone" },
       { id: 196, name: "espeon", trigger: "level up" },
     ]);
+  });
+});
+
+describe("getPokemonForm", () => {
+  it("returns a look's own types and weaknesses", async () => {
+    expect(await api.getPokemonForm("arceus-grass")).toEqual({
+      name: "arceus-grass",
+      types: ["grass"],
+      weaknesses: [
+        { type: "fire", multiplier: 2 },
+        { type: "ice", multiplier: 2 },
+        { type: "poison", multiplier: 2 },
+        { type: "flying", multiplier: 2 },
+        { type: "bug", multiplier: 2 },
+      ],
+    });
   });
 });
 

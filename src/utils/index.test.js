@@ -11,6 +11,7 @@ import {
   randomPokemonId,
   toSlug,
   toTitleCase,
+  visibleCount,
 } from "./index";
 
 describe("text helpers", () => {
@@ -78,6 +79,19 @@ describe("randomPokemonId", () => {
 
     vi.spyOn(Math, "random").mockReturnValue(0.99999);
     expect(randomPokemonId()).toBe(MAX_POKEDEX_ID);
+  });
+});
+
+describe("visibleCount", () => {
+  it("shows whole pages", () => {
+    expect(visibleCount(9, 1)).toBe(9);
+    expect(visibleCount(9, 3)).toBe(27);
+  });
+
+  it("shows enough pages to include the open item", () => {
+    expect(visibleCount(9, 1, 8)).toBe(9); // last item of page 1
+    expect(visibleCount(9, 1, 9)).toBe(18); // first item of page 2
+    expect(visibleCount(9, 3, 9)).toBe(27); // already showing
   });
 });
 

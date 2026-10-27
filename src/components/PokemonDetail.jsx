@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { MAX_POKEDEX_ID } from "../constants";
-import { usePokemon, usePokemonDetails } from "../hooks/usePokemon";
+import {
+  usePokemon,
+  usePokemonDetails,
+  usePokemonForm,
+} from "../hooks/usePokemon";
 import {
   formatName,
   formatPokedexNumber,
   pokemonDisplayName,
   spriteUrl,
 } from "../utils";
-import AlternateForms from "./AlternateForms";
+import AlternateForms, { FormImage } from "./AlternateForms";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
 import StatBubbles from "./StatBubbles";
 import TypeBadge from "./TypeBadge";
@@ -22,20 +26,35 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
   // The Alternate Forms Normal/Shiny switch. Kept here rather than in
   // AlternateForms, which unmounts while the next form loads.
   const [isShiny, setIsShiny] = useState(false);
-  // The form last picked while the switch was on Shiny. Its large artwork
-  // is shown shiny; anything opened another way (evolutions, prev/next)
-  // shows the normal artwork.
-  const [shinyFormId, setShinyFormId] = useState(null);
+  // The last tile clicked in Alternate Forms, and whether the switch was on
+  // Shiny: { pokemonId, look, isShiny }. `look` is set for looks like
+  // "arceus-fire", which stay on this Pokémon and only swap the large image,
+  // types and weaknesses; other forms open in the sidebar (`pokemonId`).
+  const [pick, setPick] = useState(null);
+  const picked = pick && pokemon && pick.pokemonId === pokemon.id ? pick : null;
+  const look = usePokemonForm(picked?.look?.name ?? null).data;
 
-  const handleFormSelect = (formId) => {
-    setShinyFormId(isShiny ? formId : null);
-    onSelect(formId);
+  const handleFormSelect = (form) => {
+    if (form.isLook) {
+      setPick({ pokemonId: pokemon.id, look: form, isShiny });
+    } else {
+      setPick({ pokemonId: form.id, look: null, isShiny });
+      onSelect(form.id);
+    }
   };
 
-  const isArtworkShiny =
-    pokemon != null &&
-    shinyFormId === pokemon.id &&
-    pokemon.shinyArtwork != null;
+  // Evolutions and prev/next always open the normal artwork.
+  const openPokemon = (pokemonId) => {
+    setPick(null);
+    onSelect(pokemonId);
+  };
+
+  const isArtworkShiny = Boolean(
+    picked?.isShiny && (picked.look || pokemon.shinyArtwork),
+  );
+  // Until a look's data arrives, the Pokémon's own types are shown.
+  const types = look?.types ?? pokemon?.types;
+  const weaknesses = look?.weaknesses ?? pokemon?.weaknesses;
 
   return (
     <DetailPanel
@@ -47,13 +66,23 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
       {pokemon && (
         <>
           {/* Artwork pokes out above the top of the card */}
-          <img
-            src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
-            alt={pokemon.name}
-            className="pointer-events-none absolute -top-24 left-1/2 h-40 w-40 -translate-x-1/2 object-contain drop-shadow-lg"
-          />
+          {picked?.look ? (
+            <FormImage
+              key={picked.look.name}
+              imageKey={picked.look.imageKey}
+              isShiny={picked.isShiny}
+              alt={pokemon.name}
+              className={ARTWORK_CLASSES}
+            />
+          ) : (
+            <img
+              src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
+              alt={pokemon.name}
+              className={`object-contain ${ARTWORK_CLASSES}`}
+            />
+          )}
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-16 text-center">
-            <Header pokemon={pokemon} />
+            <Header pokemon={pokemon} types={types} />
             <Section title="Pokédex Entry">
               <p className="text-sm text-subtle">{pokemon.description}</p>
             </Section>
@@ -68,7 +97,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
                 <Pill>{pokemon.weightKg}kg</Pill>
               </Section>
               <Section title="Weaknesses">
-                <Weaknesses weaknesses={pokemon.weaknesses} />
+                <Weaknesses weaknesses={weaknesses} />
               </Section>
               <Section title="Base Exp">
                 <Pill>{pokemon.baseExperience ?? "—"}</Pill>
@@ -81,14 +110,17 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
               <Section title="Evolution">
                 <Evolutions
                   evolutions={pokemon.evolutions}
-                  onSelect={onSelect}
+                  onSelect={openPokemon}
                 />
               </Section>
             )}
             <Section title="Alternate Forms">
               <AlternateForms
                 forms={pokemon.forms}
-                currentId={pokemon.id}
+                currentName={
+                  picked?.look?.name ??
+                  pokemon.forms.find((form) => form.id === pokemon.id)?.name
+                }
                 isCurrentShiny={isArtworkShiny}
                 speciesName={pokemon.speciesName}
                 isShiny={isShiny}
@@ -97,7 +129,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
               />
             </Section>
           </div>
-          <PrevNextNav id={pokemon.speciesId} onSelect={onSelect} />
+          <PrevNextNav id={pokemon.speciesId} onSelect={openPokemon} />
         </>
       )}
     </DetailPanel>
@@ -108,7 +140,13 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
 // Small building blocks used above
 // ---------------------------------------------------------------------------
 
-const Header = ({ pokemon }) => (
+// z-10 keeps the artwork above the panel content scrolling underneath it
+// (the ability pills are `relative`, which would otherwise paint over it).
+const ARTWORK_CLASSES =
+  "pointer-events-none absolute -top-24 left-1/2 z-10 h-40 w-40 -translate-x-1/2 drop-shadow-lg";
+
+// `types` can differ from the Pokémon's own when a look is picked.
+const Header = ({ pokemon, types }) => (
   <>
     <p className="text-sm font-semibold text-muted">
       {formatPokedexNumber(pokemon.speciesId)}
@@ -118,7 +156,7 @@ const Header = ({ pokemon }) => (
     </h2>
     <p className="text-sm text-muted">{pokemon.genus}</p>
     <div className="mt-3 flex justify-center gap-2">
-      {pokemon.types.map((type) => (
+      {types.map((type) => (
         <TypeBadge key={type} type={type} />
       ))}
     </div>
