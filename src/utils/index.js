@@ -19,9 +19,23 @@ export const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1)
 export const toTitleCase = (name) =>
   formatName(name).split(" ").map(capitalize).join(" ");
 
+/**
+ * Name to show for a raw /pokemon response. The default form goes by the
+ * species name ("giratina", not "giratina-altered"); other forms keep their
+ * full name ("charizard-mega-x").
+ */
+export const pokemonDisplayName = (pokemon) =>
+  pokemon.is_default ? pokemon.species.name : pokemon.name;
+
+const SPRITES_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon";
+
 /** Small pixel sprite by id, without needing an extra API request. */
-export const spriteUrl = (id) =>
-  `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+export const spriteUrl = (id, isShiny = false) =>
+  `${SPRITES_URL}/${isShiny ? "shiny/" : ""}${id}.png`;
+
+/** Large official artwork by id. Missing for a few rare forms. */
+export const artworkUrl = (id, isShiny = false) =>
+  `${SPRITES_URL}/other/official-artwork/${isShiny ? "shiny/" : ""}${id}.png`;
 
 /** Item sprite by name. Not every item has one, so use a fallback on error. */
 export const itemSpriteUrl = (name) =>

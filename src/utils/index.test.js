@@ -6,6 +6,7 @@ import {
   formatPokedexNumber,
   pokedexPath,
   pokedexTypePath,
+  pokemonDisplayName,
   pokemonOfTheDayId,
   randomPokemonId,
   toSlug,
@@ -34,6 +35,16 @@ describe("text helpers", () => {
   it("only capitalizes the start of each word, even with accents", () => {
     // A regex word boundary would wrongly capitalize the "b" after "é".
     expect(toTitleCase("flabébé")).toBe("Flabébé");
+  });
+});
+
+describe("pokemonDisplayName", () => {
+  it("uses the species name for the default form only", () => {
+    const species = { name: "giratina" };
+    expect(pokemonDisplayName({ name: "giratina-altered", is_default: true, species })).toBe("giratina");
+    expect(pokemonDisplayName({ name: "giratina-origin", is_default: false, species })).toBe(
+      "giratina-origin"
+    );
   });
 });
 

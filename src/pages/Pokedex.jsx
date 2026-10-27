@@ -14,7 +14,7 @@ import {
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
 import { useSidebarSelection } from "../hooks/useSidebarSelection";
 import { useUrlFilters } from "../hooks/useUrlFilters";
-import { toSlug, toTitleCase } from "../utils";
+import { pokemonDisplayName, toSlug, toTitleCase } from "../utils";
 import {
   filterPokemon,
   needsPokedexIndex,
@@ -50,7 +50,9 @@ const Pokedex = () => {
   // Tab title: the open Pokémon's name, or "Pokémon". usePokemon shares its
   // cached request with the sidebar, so this doesn't fetch anything extra.
   const openPokemon = usePokemon(sidebar.isOpen ? sidebar.selectedId : null);
-  useDocumentTitle(openPokemon.data ? toTitleCase(openPokemon.data.name) : "Pokémon");
+  useDocumentTitle(
+    openPokemon.data ? toTitleCase(pokemonDisplayName(openPokemon.data)) : "Pokémon"
+  );
 
   const handleQueryChange = (text) => {
     pokemonSearch.clearError();

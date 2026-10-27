@@ -12,14 +12,17 @@ const GRAPHQL = "https://graphql.pokeapi.co/v1beta2";
 const charizard = {
   id: 6,
   name: "charizard",
+  is_default: true,
   height: 17,
   weight: 905,
   base_experience: 267,
   sprites: {
     front_default: "sprite.png",
-    other: { "official-artwork": { front_default: "artwork.png" } },
+    other: {
+      "official-artwork": { front_default: "artwork.png", front_shiny: "artwork-shiny.png" },
+    },
   },
-  species: { url: `${API}/pokemon-species/6/` },
+  species: { name: "charizard", url: `${API}/pokemon-species/6/` },
   types: [
     { type: { name: "fire", url: `${API}/type/10/` } },
     { type: { name: "flying", url: `${API}/type/3/` } },
@@ -44,6 +47,30 @@ const charizardSpecies = {
     { flavor_text: "Spits fire that\nis hot enough\fto melt boulders.", language: { name: "en" } },
   ],
   evolution_chain: { url: `${API}/evolution-chain/2/` },
+  // Not in the API's order, to check the default form comes first.
+  varieties: [
+    { is_default: false, pokemon: { name: "charizard-mega-x", url: `${API}/pokemon/10034/` } },
+    { is_default: true, pokemon: { name: "charizard", url: `${API}/pokemon/6/` } },
+    { is_default: false, pokemon: { name: "charizard-gmax", url: `${API}/pokemon/10196/` } },
+  ],
+};
+
+// A form that isn't the default: same species, its own id and name.
+const charizardMegaX = { ...charizard, id: 10034, name: "charizard-mega-x", is_default: false };
+
+// Giratina's default form has its own name, and there is no /pokemon/giratina.
+const giratinaAltered = {
+  ...charizard,
+  id: 487,
+  name: "giratina-altered",
+  species: { name: "giratina", url: `${API}/pokemon-species/487/` },
+};
+const giratinaSpecies = {
+  ...charizardSpecies,
+  varieties: [
+    { is_default: true, pokemon: { name: "giratina-altered", url: `${API}/pokemon/487/` } },
+    { is_default: false, pokemon: { name: "giratina-origin", url: `${API}/pokemon/10007/` } },
+  ],
 };
 
 const typeRelations = (double, half, none = []) => ({
@@ -91,7 +118,7 @@ const eevee = {
   ...charizard,
   id: 133,
   name: "eevee",
-  species: { url: `${API}/pokemon-species/133/` },
+  species: { name: "eevee", url: `${API}/pokemon-species/133/` },
   types: [{ type: { name: "normal", url: `${API}/type/1/` } }],
 };
 
@@ -128,6 +155,10 @@ const ROUTES = {
   [`${API}/evolution-chain/2/`]: charmanderChain,
   [`${API}/type/10/`]: fireType,
   [`${API}/type/3/`]: flyingType,
+  [`${API}/pokemon/10034`]: charizardMegaX,
+  [`${API}/pokemon/487`]: giratinaAltered,
+  [`${API}/pokemon-species/487/`]: giratinaSpecies,
+  [`${API}/pokemon-species/giratina`]: giratinaSpecies,
   [`${API}/pokemon/133`]: eevee,
   [`${API}/pokemon-species/133/`]: {
     ...charizardSpecies,
@@ -184,7 +215,8 @@ describe("getPokemon", () => {
     await api.getPokemon("#025").catch(() => {});
     await api.getPokemon("Farfetch'd").catch(() => {});
 
-    expect(requestedUrls()).toEqual([
+    // (Names that aren't found are also tried as species; see below.)
+    expect(requestedUrls().filter((url) => url.includes("/pokemon/"))).toEqual([
       `${API}/pokemon/mr-mime`,
       `${API}/pokemon/pikachu`,
       `${API}/pokemon/25`,
@@ -200,10 +232,23 @@ describe("getPokemon", () => {
   });
 
   it("throws on a failed request and tries again next time", async () => {
-    await expect(api.getPokemon("missingno")).rejects.toThrow("Request failed (404)");
+    await expect(api.getPokemon("missingno")).rejects.toThrow(
+      `Request failed (404): ${API}/pokemon/missingno`
+    );
     await expect(api.getPokemon("missingno")).rejects.toThrow();
 
-    expect(fetch).toHaveBeenCalledTimes(2);
+    // Each attempt also tries "missingno" as a species name.
+    expect(fetch).toHaveBeenCalledTimes(4);
+  });
+
+  it("finds a species by name when the Pokémon goes by its form's name", async () => {
+    const pokemon = await api.getPokemon("Giratina");
+    expect(pokemon.name).toBe("giratina-altered");
+  });
+
+  it("doesn't look up numbers as species", async () => {
+    await expect(api.getPokemon(9999)).rejects.toThrow();
+    expect(requestedUrls()).toEqual([`${API}/pokemon/9999`]);
   });
 });
 
@@ -222,8 +267,11 @@ describe("getPokemonDetails", () => {
 
     expect(details).toMatchObject({
       id: 6,
+      speciesId: 6,
+      speciesName: "charizard",
       name: "charizard",
       artwork: "artwork.png",
+      shinyArtwork: "artwork-shiny.png",
       types: ["fire", "flying"],
       genus: "Flame Pokémon",
       heightMeters: 1.7,
@@ -238,6 +286,30 @@ describe("getPokemonDetails", () => {
         { name: "speed", value: 100 },
       ],
     });
+  });
+
+  it("names the default form after its species", async () => {
+    expect((await api.getPokemonDetails(487)).name).toBe("giratina");
+  });
+
+  it("keeps the full name and the Pokédex number for other forms", async () => {
+    expect(await api.getPokemonDetails(10034)).toMatchObject({
+      id: 10034,
+      speciesId: 6,
+      name: "charizard-mega-x",
+    });
+  });
+
+  it("lists every form, default first, without the species in the name", async () => {
+    expect((await api.getPokemonDetails(6)).forms).toEqual([
+      { id: 6, name: "charizard", formName: "" },
+      { id: 10034, name: "charizard-mega-x", formName: "mega-x" },
+      { id: 10196, name: "charizard-gmax", formName: "gmax" },
+    ]);
+    expect((await api.getPokemonDetails(487)).forms).toEqual([
+      { id: 487, name: "giratina-altered", formName: "altered" },
+      { id: 10007, name: "giratina-origin", formName: "origin" },
+    ]);
   });
 
   it("picks the English description and removes line breaks", async () => {

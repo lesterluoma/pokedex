@@ -1,5 +1,5 @@
 import { usePokemon } from "../hooks/usePokemon";
-import { formatName, formatPokedexNumber } from "../utils";
+import { formatName, formatPokedexNumber, pokemonDisplayName } from "../utils";
 import TypeBadge from "./TypeBadge";
 
 // Shared card shell so loading, error and loaded states are the same size.
@@ -44,7 +44,7 @@ const PokemonCard = ({ id, isSelected, onSelect }) => {
     <CardShell isSelected={isSelected} onClick={() => onSelect(id)}>
       <img
         src={pokemon.sprites.front_default}
-        alt={pokemon.name}
+        alt={pokemonDisplayName(pokemon)}
         loading="lazy"
         className="pixelated absolute -top-12 h-24 w-24"
       />
@@ -52,7 +52,7 @@ const PokemonCard = ({ id, isSelected, onSelect }) => {
         {formatPokedexNumber(pokemon.id)}
       </p>
       <h2 className="mb-2 mt-1 text-lg font-bold capitalize">
-        {formatName(pokemon.name)}
+        {formatName(pokemonDisplayName(pokemon))}
       </h2>
       <div className="flex gap-1.5">
         {pokemon.types.map(({ type }) => (

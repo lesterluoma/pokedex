@@ -1,6 +1,13 @@
+import { useState } from "react";
 import { MAX_POKEDEX_ID } from "../constants";
 import { usePokemon, usePokemonDetails } from "../hooks/usePokemon";
-import { formatName, formatPokedexNumber, spriteUrl } from "../utils";
+import {
+  formatName,
+  formatPokedexNumber,
+  pokemonDisplayName,
+  spriteUrl,
+} from "../utils";
+import AlternateForms from "./AlternateForms";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
 import StatBubbles from "./StatBubbles";
 import TypeBadge from "./TypeBadge";
@@ -8,10 +15,27 @@ import TypeBadge from "./TypeBadge";
 /**
  * Contents of the sidebar for one Pokémon. All data comes from
  * getPokemonDetails() in services/pokeapi.js.
- * `onSelect(id)` switches to another Pokémon (evolutions, prev/next).
+ * `onSelect(id)` switches to another Pokémon (evolutions, forms, prev/next).
  */
 const PokemonDetail = ({ id, onSelect, onClose }) => {
   const { data: pokemon, error, isLoading } = usePokemonDetails(id);
+  // The Alternate Forms Normal/Shiny switch. Kept here rather than in
+  // AlternateForms, which unmounts while the next form loads.
+  const [isShiny, setIsShiny] = useState(false);
+  // The form last picked while the switch was on Shiny. Its large artwork
+  // is shown shiny; anything opened another way (evolutions, prev/next)
+  // shows the normal artwork.
+  const [shinyFormId, setShinyFormId] = useState(null);
+
+  const handleFormSelect = (formId) => {
+    setShinyFormId(isShiny ? formId : null);
+    onSelect(formId);
+  };
+
+  const isArtworkShiny =
+    pokemon != null &&
+    shinyFormId === pokemon.id &&
+    pokemon.shinyArtwork != null;
 
   return (
     <DetailPanel
@@ -24,7 +48,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
         <>
           {/* Artwork pokes out above the top of the card */}
           <img
-            src={pokemon.artwork}
+            src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
             alt={pokemon.name}
             className="pointer-events-none absolute -top-24 left-1/2 h-40 w-40 -translate-x-1/2 object-contain drop-shadow-lg"
           />
@@ -61,8 +85,19 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
                 />
               </Section>
             )}
+            <Section title="Alternate Forms">
+              <AlternateForms
+                forms={pokemon.forms}
+                currentId={pokemon.id}
+                isCurrentShiny={isArtworkShiny}
+                speciesName={pokemon.speciesName}
+                isShiny={isShiny}
+                onShinyChange={setIsShiny}
+                onSelect={handleFormSelect}
+              />
+            </Section>
           </div>
-          <PrevNextNav id={pokemon.id} onSelect={onSelect} />
+          <PrevNextNav id={pokemon.speciesId} onSelect={onSelect} />
         </>
       )}
     </DetailPanel>
@@ -76,7 +111,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
 const Header = ({ pokemon }) => (
   <>
     <p className="text-sm font-semibold text-muted">
-      {formatPokedexNumber(pokemon.id)}
+      {formatPokedexNumber(pokemon.speciesId)}
     </p>
     <h2 className="text-2xl font-bold capitalize">
       {formatName(pokemon.name)}
@@ -143,20 +178,16 @@ const Evolutions = ({ evolutions, onSelect }) => (
   </div>
 );
 
-const PrevNextNav = ({ id, onSelect }) => {
-  // Alternate forms found by search (e.g. "charizard-mega-x") have ids
-  // above 10000, so "previous/next" has no meaning for them.
-  if (id > MAX_POKEDEX_ID) return null;
-
-  return (
-    <div className="mx-3 mb-3 flex items-center justify-between rounded-2xl bg-page p-2 text-sm font-semibold">
-      {id > 1 ? <NeighborButton id={id - 1} onSelect={onSelect} /> : <span />}
-      {id < MAX_POKEDEX_ID && (
-        <NeighborButton id={id + 1} onSelect={onSelect} isNext />
-      )}
-    </div>
-  );
-};
+// `id` is the Pokédex number, so alternate forms (e.g. Mega Charizard X,
+// id 10034) still link to their neighbors in the Pokédex.
+const PrevNextNav = ({ id, onSelect }) => (
+  <div className="mx-3 mb-3 flex items-center justify-between rounded-2xl bg-page p-2 text-sm font-semibold">
+    {id > 1 ? <NeighborButton id={id - 1} onSelect={onSelect} /> : <span />}
+    {id < MAX_POKEDEX_ID && (
+      <NeighborButton id={id + 1} onSelect={onSelect} isNext />
+    )}
+  </div>
+);
 
 const NeighborButton = ({ id, onSelect, isNext = false }) => {
   const { data: pokemon } = usePokemon(id);
@@ -171,7 +202,7 @@ const NeighborButton = ({ id, onSelect, isNext = false }) => {
     >
       <span className="text-muted">{isNext ? "›" : "‹"}</span>
       <img src={spriteUrl(id)} alt="" className="pixelated h-8 w-8" />
-      {pokemon && formatName(pokemon.name)}
+      {pokemon && formatName(pokemonDisplayName(pokemon))}
       <span className="text-muted">#{id}</span>
     </button>
   );

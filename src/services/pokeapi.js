@@ -1,6 +1,8 @@
 // All PokeAPI access lives here. Components never call fetch() directly.
 // Every function throws on failure, so callers can catch and show an error.
 
+import { pokemonDisplayName } from "../utils";
+
 const BASE_URL = "https://pokeapi.co/api/v2";
 // PokeAPI's GraphQL API. Only used for getPokedexIndex(), which needs data
 // for every Pokémon at once (the REST API would take 1,025 requests).
@@ -71,9 +73,25 @@ export const getPokemonList = async () => {
   return results.map(({ name, url }) => ({ id: idFromUrl(url), name }));
 };
 
-/** Raw /pokemon/{idOrName} response. Used by the grid cards and search. */
-export const getPokemon = (idOrName) =>
-  fetchJson(`${BASE_URL}/pokemon/${toApiKey(idOrName)}`);
+/**
+ * Raw /pokemon/{idOrName} response. Used by the grid cards and search.
+ * Some Pokémon have no /pokemon entry under their own name, only under their
+ * default form's (there's no "giratina", only "giratina-altered"), so a name
+ * that isn't found is looked up as a species and its default form is returned.
+ */
+export const getPokemon = async (idOrName) => {
+  const key = toApiKey(idOrName);
+  try {
+    return await fetchJson(`${BASE_URL}/pokemon/${key}`);
+  } catch (error) {
+    if (/^\d+$/.test(key)) throw error;
+    const species = await fetchJson(`${BASE_URL}/pokemon-species/${key}`).catch(() => {
+      throw error; // report the original "not found", not the fallback's
+    });
+    const variety = species.varieties.find((entry) => entry.is_default);
+    return getPokemon(idFromUrl(variety.pokemon.url));
+  }
+};
 
 /**
  * Everything the detail panel needs, flattened into one plain object.
@@ -90,10 +108,17 @@ export const getPokemonDetails = async (id) => {
 
   return {
     id: pokemon.id,
-    name: pokemon.name,
+    // The Pokédex number. Same as `id`, except for alternate forms
+    // (Charizard's Mega X form has id 10034 but is still N°006).
+    speciesId: idFromUrl(pokemon.species.url),
+    speciesName: pokemon.species.name,
+    name: pokemonDisplayName(pokemon),
     artwork:
       pokemon.sprites.other["official-artwork"].front_default ??
       pokemon.sprites.front_default,
+    shinyArtwork:
+      pokemon.sprites.other["official-artwork"].front_shiny ??
+      pokemon.sprites.front_shiny,
     types: pokemon.types.map(({ type }) => type.name),
     genus: englishEntry(species.genera)?.genus ?? "",
     description: cleanFlavorText(
@@ -112,8 +137,25 @@ export const getPokemonDetails = async (id) => {
     })),
     weaknesses: getWeaknesses(typeData),
     evolutions: flattenEvolutionChain(evolutionChain.chain),
+    forms: listForms(species.varieties, pokemon.species.name),
   };
 };
+
+/**
+ * Every version of the species that has its own stats or look (Mega
+ * Evolutions, regional forms, sizes, Giratina's Origin form...), default
+ * first. `formName` is the name without the species, e.g. "mega-x", or ""
+ * when the form is just the species name ("charizard").
+ * [{ id: 6, name: "charizard", formName: "" }, { id: 10034, name: "charizard-mega-x", formName: "mega-x" }, ...]
+ */
+const listForms = (varieties, speciesName) =>
+  varieties
+    .toSorted((a, b) => b.is_default - a.is_default)
+    .map(({ pokemon }) => ({
+      id: idFromUrl(pokemon.url),
+      name: pokemon.name,
+      formName: pokemon.name.replace(new RegExp(`^${speciesName}-?`), ""),
+    }));
 
 // Flavor text contains form feeds and hard line breaks from the games.
 const cleanFlavorText = (text) => text.replace(/[\f\n\r]+/g, " ");
