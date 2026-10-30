@@ -14,6 +14,7 @@ import { usePokemonForm, usePokemonFullDetails } from "../hooks/usePokemon";
 import { getPokemon } from "../services/pokeapi";
 import {
   formatGender,
+  formatMultiplier,
   formatName,
   formatPokedexNumber,
   pokemonDisplayName,
@@ -374,11 +375,6 @@ const StatDot = ({ label, className }) => (
     {label}
   </span>
 );
-
-// 0.25 -> "¼×", 0.5 -> "½×", 2 -> "2×"
-const MULTIPLIER_LABELS = { 0.25: "¼", 0.5: "½" };
-const formatMultiplier = (multiplier) =>
-  `${MULTIPLIER_LABELS[multiplier] ?? multiplier}×`;
 
 const DamageTaken = ({ damageTaken }) => (
   <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold sm:grid-cols-6 lg:grid-cols-3">

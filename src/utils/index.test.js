@@ -3,6 +3,7 @@ import { MAX_POKEDEX_ID } from "../constants";
 import {
   capitalize,
   formatGender,
+  formatMultiplier,
   formatName,
   formatPokedexNumber,
   pokedexPath,
@@ -11,6 +12,7 @@ import {
   pokemonPath,
   pokemonOfTheDayId,
   randomPokemonId,
+  startingMoveGame,
   statRange,
   toSlug,
   toTitleCase,
@@ -128,5 +130,44 @@ describe("detail page helpers", () => {
     expect(formatGender(1)).toBe("100% ♀");
     expect(formatGender(0.125)).toBe("87.5% ♂ 12.5% ♀");
     expect(formatGender(0.5)).toBe("50% ♂ 50% ♀");
+  });
+
+  it("labels damage multipliers", () => {
+    expect(formatMultiplier(0)).toBe("0×");
+    expect(formatMultiplier(0.25)).toBe("¼×");
+    expect(formatMultiplier(0.5)).toBe("½×");
+    expect(formatMultiplier(1)).toBe("1×");
+    expect(formatMultiplier(4)).toBe("4×");
+  });
+});
+
+describe("startingMoveGame", () => {
+  // Newest first, like getMoveGames().
+  const games = [
+    { name: "champions", hasLevelUp: false },
+    { name: "scarlet-violet", hasLevelUp: true },
+    { name: "sword-shield", hasLevelUp: true },
+  ];
+
+  it("starts on the newest game with level-up moves", () => {
+    expect(startingMoveGame(games, null)).toBe("scarlet-violet");
+  });
+
+  it("keeps a game picked by hand when the Pokémon has it", () => {
+    expect(startingMoveGame(games, "sword-shield")).toBe("sword-shield");
+    expect(startingMoveGame(games, "champions")).toBe("champions");
+  });
+
+  it("falls back when the picked game isn't in the list", () => {
+    expect(startingMoveGame(games, "red-blue")).toBe("scarlet-violet");
+  });
+
+  it("uses the newest game when none have level-up moves", () => {
+    const noLevelUp = games.map((game) => ({ ...game, hasLevelUp: false }));
+    expect(startingMoveGame(noLevelUp, null)).toBe("champions");
+  });
+
+  it("is null when there are no games", () => {
+    expect(startingMoveGame([], "scarlet-violet")).toBeNull();
   });
 });

@@ -26,6 +26,8 @@ A modern Pokédex web application built with React, Vite, Tailwind CSS, and Java
 - View detailed information about each Pokémon, including type, stats, abilities, weaknesses, and evolutions.
 - View detailed information about each item, including its effect, description, price, and which wild Pokémon hold it.
 - Details open in a sidebar that slides in from the right.
+- Every Pokémon has its own full page, such as `/pokedex/pikachu`, with ability descriptions, training and breeding info, names in other languages, base stats with their level 100 range, damage taken from every type, evolutions, alternate forms, Pokédex entries from every game, and moves.
+- See the moves a Pokémon learns in any game, by level up, TM, egg, tutor, and more, with each move's type, category, power, accuracy, and PP.
 - Shareable links: the open Pokémon or item and any filters are saved in the page address.
 - Light and dark mode, which follows your system setting until you pick one.
 - Responsive design optimized for mobile and desktop.
@@ -68,6 +70,8 @@ Once the development server is running, you can:
 - Click the reset button next to the filters to clear them all.
 - Press Enter in the search bar to open a Pokémon directly. This also finds alternate forms, such as `charizard-mega-x`.
 - Click on a Pokémon to view its detailed information. Click it again to close the sidebar.
+- Click "View full page" in the sidebar, or double-click a card, to open the Pokémon's full page. "Back to Pokédex" takes you back with your filters and search kept.
+- On a Pokémon's full page, pick a game above the Moves tables to see the moves it learns there. The game you pick stays picked as you move between Pokémon.
 - Click "Show more" at the bottom of the page to load more cards.
 - Copy the page address to share what you're looking at. For example, `/pokedex?id=25` opens Pikachu and `/pokedex?type=fire&q=char` shows Fire-type Pokémon with "char" in their name.
 - Use the navigation to switch between the Home, Pokédex, and Items pages.
@@ -111,13 +115,15 @@ This project uses the [PokeAPI](https://pokeapi.co/) to fetch Pokémon and item 
 - **Endpoints**:
   - `/pokemon-species`: Get the list of every Pokémon.
   - `/pokemon/{id or name}`: Get details about a specific Pokémon.
-  - `/pokemon-species/{id}`: Get a Pokémon's description and category.
+  - `/pokemon-species/{id}`: Get a Pokémon's description, category, breeding info, and Pokédex entries.
+  - `/pokemon-form/{name}`: Get the types of a look, such as `arceus-fire`.
+  - `/ability/{id or name}`: Get an ability's description, for the full page.
   - `/type/{id or name}`: Get details about a specific Pokémon type, used to work out weaknesses.
   - `/evolution-chain/{id}`: Get a Pokémon's evolutions.
   - `/item`: Get the list of every item.
   - `/item/{id or name}`: Get details about a specific item.
 
-The filters need data for every Pokémon or item at once, such as each Pokémon's types and abilities or each item's pocket and category. Instead of making thousands of separate requests, each page gets it all in one request from the PokeAPI GraphQL API:
+The filters need data for every Pokémon or item at once, such as each Pokémon's types and abilities or each item's pocket and category. Instead of making thousands of separate requests, each page gets it all in one request from the PokeAPI GraphQL API. The full page's Moves tables also come from it, one game at a time:
 
 - **GraphQL URL**: `https://graphql.pokeapi.co/v1beta2`
 
@@ -136,7 +142,7 @@ pokedex/
 │   ├── components/    # Reusable React components
 │   ├── constants/     # Reusable variables
 │   ├── hooks/         # Custom React hooks (data loading, sidebar, theme)
-│   ├── pages/         # Page components (e.g., Home, Pokedex, Items)
+│   ├── pages/         # Page components (e.g., Home, Pokedex, PokemonPage, Items)
 │   ├── services/      # API service functions
 │   ├── utils/         # Small helper functions and filter logic
 │   ├── **/*.test.js   # Tests, next to the code they test

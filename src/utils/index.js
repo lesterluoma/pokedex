@@ -112,3 +112,18 @@ export const formatGender = (femaleRatio) => {
   if (femaleRatio === 1) return female;
   return `${male} ${female}`;
 };
+
+// 0.25 -> "¼×", 0.5 -> "½×", 2 -> "2×"
+const MULTIPLIER_LABELS = { 0.25: "¼", 0.5: "½" };
+export const formatMultiplier = (multiplier) =>
+  `${MULTIPLIER_LABELS[multiplier] ?? multiplier}×`;
+
+/**
+ * The game the Moves card shows, from getMoveGames()'s list (newest first):
+ * the one picked by hand if this Pokémon has it, otherwise the newest game
+ * with level-up moves, otherwise the newest game. null when there are none.
+ */
+export const startingMoveGame = (games, pickedGame) => {
+  if (games.some(({ name }) => name === pickedGame)) return pickedGame;
+  return (games.find(({ hasLevelUp }) => hasLevelUp) ?? games[0])?.name ?? null;
+};

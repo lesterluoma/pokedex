@@ -188,6 +188,13 @@ const Header = ({ pokemon, types }) => (
         <TypeBadge key={type} type={type} />
       ))}
     </div>
+    {/* The links above are easy to miss, so this one says what it does */}
+    <DetailPageLink
+      pokemon={pokemon}
+      className="mt-3 inline-block rounded-full bg-page px-4 py-2 text-xs font-semibold text-subtle transition hover:text-red"
+    >
+      View full page ›
+    </DetailPageLink>
   </>
 );
 

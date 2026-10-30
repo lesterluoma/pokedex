@@ -1,5 +1,5 @@
 import { useMoveGames, usePokemonMoves } from "../hooks/usePokemon";
-import { formatName, toTitleCase } from "../utils";
+import { formatName, startingMoveGame, toTitleCase } from "../utils";
 import MoveCategoryIcon from "./MoveCategoryIcon";
 import { ChevronIcon } from "./FilterIcons";
 import PageCard from "./PageCard";
@@ -13,7 +13,6 @@ const METHOD_TITLES = {
   egg: "Egg Moves",
   tutor: "Tutor Moves",
 };
-
 
 /**
  * The "Moves" card of the Pokémon detail page: a game picker and one table
@@ -30,9 +29,7 @@ const PokemonMoves = ({ pokemonId, pickedGame, onPickGame, className = "" }) => 
   const games = useMoveGames(pokemonId);
 
   const gameList = games.data ?? [];
-  const game = gameList.some(({ name }) => name === pickedGame)
-    ? pickedGame
-    : (gameList.find(({ hasLevelUp }) => hasLevelUp) ?? gameList[0])?.name ?? null;
+  const game = startingMoveGame(gameList, pickedGame);
   const moves = usePokemonMoves(pokemonId, game);
 
   const picker = gameList.length > 0 && (
@@ -99,8 +96,7 @@ const MoveTable = ({ method, moves }) => {
   return (
     <div>
       <h3 className="mb-1.5 text-sm font-bold capitalize">
-        {METHOD_TITLES[method] ?? formatName(method)}{" "}
-        <span className="font-semibold text-muted">({moves.length})</span>
+        {METHOD_TITLES[method] ?? formatName(method)}
       </h3>
       {/* Scrolls sideways on phones instead of squashing the columns */}
       <div className="overflow-x-auto">
