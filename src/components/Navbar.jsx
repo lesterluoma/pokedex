@@ -12,7 +12,8 @@ const NavItem = ({ label, href, Icon }) => (
   <NavLink
     to={href}
     // Without `end`, the "/" link would count as active on every page.
-    end
+    // The others stay active on their sub-pages, e.g. "/pokedex/pikachu".
+    end={href === "/"}
     className={({ isActive }) =>
       `flex items-center gap-2 border-b-2 py-4 text-sm font-semibold transition-colors ${
         isActive

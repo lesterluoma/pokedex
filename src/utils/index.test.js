@@ -2,13 +2,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { MAX_POKEDEX_ID } from "../constants";
 import {
   capitalize,
+  formatGender,
   formatName,
   formatPokedexNumber,
   pokedexPath,
   pokedexTypePath,
   pokemonDisplayName,
+  pokemonPath,
   pokemonOfTheDayId,
   randomPokemonId,
+  statRange,
   toSlug,
   toTitleCase,
   visibleCount,
@@ -99,5 +102,31 @@ describe("links", () => {
   it("builds Pokédex addresses", () => {
     expect(pokedexPath(25)).toBe("/pokedex?id=25");
     expect(pokedexTypePath("fire")).toBe("/pokedex?type=fire");
+  });
+});
+
+describe("detail page helpers", () => {
+  it("builds the detail page address from a name", () => {
+    expect(pokemonPath("giratina")).toBe("/pokedex/giratina");
+    expect(pokemonPath("charizard-mega-x")).toBe("/pokedex/charizard-mega-x");
+  });
+
+  it("works out the level 100 stat range", () => {
+    // Alcremie's base stats.
+    expect(statRange("hp", 65)).toEqual({ min: 240, max: 334 });
+    expect(statRange("attack", 60)).toEqual({ min: 112, max: 240 });
+    expect(statRange("special-defense", 121)).toEqual({ min: 222, max: 375 });
+  });
+
+  it("keeps Shedinja's HP at 1", () => {
+    expect(statRange("hp", 1)).toEqual({ min: 1, max: 1 });
+  });
+
+  it("describes the gender ratio", () => {
+    expect(formatGender(null)).toBe("Genderless");
+    expect(formatGender(0)).toBe("100% ♂");
+    expect(formatGender(1)).toBe("100% ♀");
+    expect(formatGender(0.125)).toBe("87.5% ♂ 12.5% ♀");
+    expect(formatGender(0.5)).toBe("50% ♂ 50% ♀");
   });
 });

@@ -1,6 +1,7 @@
 // All PokeAPI access lives here. Components never call fetch() directly.
 // Every function throws on failure, so callers can catch and show an error.
 
+import { POKEMON_TYPES } from "../constants";
 import { pokemonDisplayName } from "../utils";
 
 const BASE_URL = "https://pokeapi.co/api/v2";
@@ -82,7 +83,12 @@ export const getPokemonList = async () => {
 export const getPokemon = async (idOrName) => {
   const key = toApiKey(idOrName);
   try {
-    return await fetchJson(`${BASE_URL}/pokemon/${key}`);
+    const pokemon = await fetchJson(`${BASE_URL}/pokemon/${key}`);
+    // Looking up by name (the detail page's address) and then by number
+    // (getPokemonDetails) would otherwise fetch the same Pokémon twice.
+    const byIdUrl = `${BASE_URL}/pokemon/${pokemon.id}`;
+    if (!cache.has(byIdUrl)) cache.set(byIdUrl, Promise.resolve(pokemon));
+    return pokemon;
   } catch (error) {
     if (/^\d+$/.test(key)) throw error;
     const species = await fetchJson(`${BASE_URL}/pokemon-species/${key}`).catch(() => {
@@ -201,7 +207,88 @@ export const getPokemonForm = async (name) => {
     name: form.name,
     types: form.types.map(({ type }) => type.name),
     weaknesses: getWeaknesses(typeData),
+    damageTaken: getDamageTaken(typeData),
   };
+};
+
+// Languages listed under "Other Names" on the detail page, in display order.
+// "ja-hrkt" is Japanese in kana, the way it's written in the games.
+const OTHER_NAME_LANGUAGES = {
+  "ja-hrkt": "Japanese",
+  fr: "French",
+  de: "German",
+  ko: "Korean",
+};
+
+/**
+ * Everything on the Pokémon detail page: getPokemonDetails() plus training,
+ * breeding, the full type chart, ability descriptions and every game's
+ * Pokédex entry. Takes a name or number, like getPokemon().
+ */
+export const getPokemonFullDetails = async (idOrName) => {
+  const pokemon = await getPokemon(idOrName);
+  // All of these but the abilities were already fetched (and cached) by
+  // getPokemonDetails, so this only adds one request per ability.
+  const [details, species, typeData, abilities] = await Promise.all([
+    getPokemonDetails(pokemon.id),
+    fetchJson(pokemon.species.url),
+    Promise.all(pokemon.types.map(({ type }) => fetchJson(type.url))),
+    Promise.all(pokemon.abilities.map(({ ability }) => fetchJson(ability.url))),
+  ]);
+
+  return {
+    ...details,
+    abilities: details.abilities.map((ability, index) => ({
+      ...ability,
+      description: describeAbility(abilities[index]),
+    })),
+    damageTaken: getDamageTaken(typeData),
+    // Effort values earned for defeating it: [{ name: "special-defense", value: 2 }]
+    evYield: pokemon.stats
+      .filter(({ effort }) => effort > 0)
+      .map(({ stat, effort }) => ({ name: stat.name, value: effort })),
+    catchRate: species.capture_rate,
+    baseHappiness: species.base_happiness,
+    growthRate: species.growth_rate.name,
+    eggGroups: species.egg_groups.map(({ name }) => name),
+    eggCycles: species.hatch_counter,
+    // The API counts females in eighths, with -1 for genderless.
+    femaleRatio: species.gender_rate === -1 ? null : species.gender_rate / 8,
+    otherNames: Object.entries(OTHER_NAME_LANGUAGES).flatMap(
+      ([code, language]) => {
+        const entry = species.names.find((name) => name.language.name === code);
+        return entry ? [{ language, name: entry.name }] : [];
+      },
+    ),
+    pokedexEntries: groupPokedexEntries(species.flavor_text_entries),
+  };
+};
+
+// The newest game's English description, else the short effect text.
+const describeAbility = (ability) => {
+  const flavor = ability.flavor_text_entries.filter(
+    (entry) => entry.language.name === "en",
+  ).at(-1)?.flavor_text;
+  return cleanFlavorText(
+    flavor ?? englishEntry(ability.effect_entries)?.short_effect ?? "",
+  );
+};
+
+/**
+ * English Pokédex entries, oldest game first. Games that share the same
+ * text are listed together:
+ * [{ games: ["red", "blue"], text: "..." }, { games: ["yellow"], text: "..." }]
+ */
+const groupPokedexEntries = (flavorTextEntries) => {
+  const groups = new Map();
+  flavorTextEntries
+    .filter((entry) => entry.language.name === "en")
+    .forEach(({ flavor_text, version }) => {
+      const text = cleanFlavorText(flavor_text);
+      if (!groups.has(text)) groups.set(text, []);
+      groups.get(text).push(version.name);
+    });
+  return [...groups].map(([text, games]) => ({ games, text }));
 };
 
 // Flavor text contains form feeds and hard line breaks from the games.
@@ -209,14 +296,14 @@ const cleanFlavorText = (text) => text.replace(/[\f\n\r]+/g, " ");
 
 /**
  * Multiplies the damage taken from each attacking type across all of the
- * Pokémon's types, then keeps the ones that deal more than normal damage.
- * Returns e.g. [{ type: "electric", multiplier: 2 }]
+ * Pokémon's types. Returns every type, in POKEMON_TYPES order:
+ * [{ type: "normal", multiplier: 1 }, { type: "fire", multiplier: 0.5 }, ...]
  */
-const getWeaknesses = (typeData) => {
-  const multipliers = {};
+const getDamageTaken = (typeData) => {
+  const multipliers = Object.fromEntries(POKEMON_TYPES.map((type) => [type, 1]));
   const apply = (relations, factor) =>
     relations.forEach(({ name }) => {
-      multipliers[name] = (multipliers[name] ?? 1) * factor;
+      multipliers[name] *= factor;
     });
 
   typeData.forEach(({ damage_relations: relations }) => {
@@ -225,11 +312,17 @@ const getWeaknesses = (typeData) => {
     apply(relations.no_damage_from, 0);
   });
 
-  return Object.entries(multipliers)
-    .filter(([, multiplier]) => multiplier > 1)
-    .map(([type, multiplier]) => ({ type, multiplier }))
-    .sort((a, b) => b.multiplier - a.multiplier);
+  return POKEMON_TYPES.map((type) => ({ type, multiplier: multipliers[type] }));
 };
+
+/**
+ * The types from getDamageTaken that deal more than normal damage, most
+ * damaging first. Returns e.g. [{ type: "electric", multiplier: 2 }]
+ */
+const getWeaknesses = (typeData) =>
+  getDamageTaken(typeData)
+    .filter(({ multiplier }) => multiplier > 1)
+    .sort((a, b) => b.multiplier - a.multiplier);
 
 /**
  * Evolution chains are trees (Eevee branches a lot). This walks the tree

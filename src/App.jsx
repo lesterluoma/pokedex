@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Items from "./pages/Items";
 import Pokedex from "./pages/Pokedex";
+import PokemonPage from "./pages/PokemonPage";
 
 const App = () => (
   <Router>
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/pokedex" element={<Pokedex />} />
+          <Route path="/pokedex/:name" element={<PokemonPage />} />
           <Route path="/items" element={<Items />} />
           {/* Anything else (including the old "/home") goes to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />

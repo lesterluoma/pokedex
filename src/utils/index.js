@@ -77,5 +77,38 @@ export const randomPokemonId = () =>
  */
 export const pokedexPath = (id) => `/pokedex?id=${id}`;
 
+/**
+ * Address of a Pokémon's detail page, by the name pokemonDisplayName()
+ * gives, e.g. "/pokedex/giratina".
+ */
+export const pokemonPath = (name) => `/pokedex/${name}`;
+
 /** Address of the Pokédex page filtered to one type, e.g. "/pokedex?type=fire". */
 export const pokedexTypePath = (type) => `/pokedex?type=${type}`;
+
+/**
+ * Lowest and highest value of a stat at level 100: no IVs or EVs and a
+ * hindering nature for the lowest, 31 IVs, 252 EVs and a helpful nature for
+ * the highest. HP has no nature and its own formula. Shedinja's HP is
+ * always 1.
+ */
+export const statRange = (name, base) => {
+  if (name === "hp") {
+    if (base === 1) return { min: 1, max: 1 };
+    return { min: 2 * base + 110, max: 2 * base + 204 };
+  }
+  return {
+    min: Math.floor((2 * base + 5) * 0.9),
+    max: Math.floor((2 * base + 99) * 1.1),
+  };
+};
+
+/** 0.125 -> "87.5% ♂ 12.5% ♀", 1 -> "100% ♀", null -> "Genderless" */
+export const formatGender = (femaleRatio) => {
+  if (femaleRatio == null) return "Genderless";
+  const female = `${femaleRatio * 100}% ♀`;
+  const male = `${(1 - femaleRatio) * 100}% ♂`;
+  if (femaleRatio === 0) return male;
+  if (femaleRatio === 1) return female;
+  return `${male} ${female}`;
+};

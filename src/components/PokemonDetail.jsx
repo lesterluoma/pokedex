@@ -1,18 +1,11 @@
 import { useState } from "react";
-import { MAX_POKEDEX_ID } from "../constants";
-import {
-  usePokemon,
-  usePokemonDetails,
-  usePokemonForm,
-} from "../hooks/usePokemon";
-import {
-  formatName,
-  formatPokedexNumber,
-  pokemonDisplayName,
-  spriteUrl,
-} from "../utils";
+import { Link } from "react-router-dom";
+import { usePokemonDetails, usePokemonForm } from "../hooks/usePokemon";
+import { formatName, formatPokedexNumber, pokemonPath } from "../utils";
 import AlternateForms, { FormImage } from "./AlternateForms";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
+import Evolutions from "./Evolutions";
+import PrevNextNav from "./PrevNextNav";
 import StatBubbles from "./StatBubbles";
 import TypeBadge from "./TypeBadge";
 
@@ -66,21 +59,23 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
       {pokemon && (
         <>
           {/* Artwork pokes out above the top of the card */}
-          {picked?.look ? (
-            <FormImage
-              key={picked.look.name}
-              imageKey={picked.look.imageKey}
-              isShiny={picked.isShiny}
-              alt={pokemon.name}
-              className={ARTWORK_CLASSES}
-            />
-          ) : (
-            <img
-              src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
-              alt={pokemon.name}
-              className={`object-contain ${ARTWORK_CLASSES}`}
-            />
-          )}
+          <DetailPageLink pokemon={pokemon} className={ARTWORK_CLASSES}>
+            {picked?.look ? (
+              <FormImage
+                key={picked.look.name}
+                imageKey={picked.look.imageKey}
+                isShiny={picked.isShiny}
+                alt={pokemon.name}
+                className={ARTWORK_IMAGE_CLASSES}
+              />
+            ) : (
+              <img
+                src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
+                alt={pokemon.name}
+                className={`object-contain ${ARTWORK_IMAGE_CLASSES}`}
+              />
+            )}
+          </DetailPageLink>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-16 text-center">
             <Header pokemon={pokemon} types={types} />
             <Section title="Pokédex Entry">
@@ -129,7 +124,11 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
               />
             </Section>
           </div>
-          <PrevNextNav id={pokemon.speciesId} onSelect={openPokemon} />
+          <PrevNextNav
+            id={pokemon.speciesId}
+            onSelect={openPokemon}
+            className="mx-3 mb-3 bg-page"
+          />
         </>
       )}
     </DetailPanel>
@@ -142,19 +141,47 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
 
 // z-10 keeps the artwork above the panel content scrolling underneath it
 // (the ability pills are `relative`, which would otherwise paint over it).
+// The position is on the link around the image, the size on both.
 const ARTWORK_CLASSES =
-  "pointer-events-none absolute -top-24 left-1/2 z-10 h-40 w-40 -translate-x-1/2 drop-shadow-lg";
+  "absolute -top-24 left-1/2 z-10 h-40 w-40 -translate-x-1/2 rounded-full";
+const ARTWORK_IMAGE_CLASSES = "h-40 w-40 drop-shadow-lg";
+
+/**
+ * Opens the Pokémon's detail page. Used on the artwork, the Pokédex number,
+ * the name and the species. `pokedexDepth: 1` lets the page's "Back to Pokédex" return
+ * here (see PokemonPage).
+ */
+const DetailPageLink = ({ pokemon, className = "", children }) => (
+  <Link
+    to={pokemonPath(pokemon.name)}
+    state={{ pokedexDepth: 1 }}
+    title="View full details"
+    className={`focus:outline-none focus-visible:ring-2 focus-visible:ring-red ${className}`}
+  >
+    {children}
+  </Link>
+);
 
 // `types` can differ from the Pokémon's own when a look is picked.
 const Header = ({ pokemon, types }) => (
   <>
     <p className="text-sm font-semibold text-muted">
-      {formatPokedexNumber(pokemon.speciesId)}
+      {/* Gray text (the number and the species) darkens on hover, like the
+          Normal/Shiny switch; the name, already dark, turns red instead. */}
+      <DetailPageLink pokemon={pokemon} className="rounded transition hover:text-ink">
+        {formatPokedexNumber(pokemon.speciesId)}
+      </DetailPageLink>
     </p>
     <h2 className="text-2xl font-bold capitalize">
-      {formatName(pokemon.name)}
+      <DetailPageLink pokemon={pokemon} className="rounded hover:text-red">
+        {formatName(pokemon.name)}
+      </DetailPageLink>
     </h2>
-    <p className="text-sm text-muted">{pokemon.genus}</p>
+    <p className="text-sm text-muted">
+      <DetailPageLink pokemon={pokemon} className="rounded transition hover:text-ink">
+        {pokemon.genus}
+      </DetailPageLink>
+    </p>
     <div className="mt-3 flex justify-center gap-2">
       {types.map((type) => (
         <TypeBadge key={type} type={type} />
@@ -193,57 +220,5 @@ const Weaknesses = ({ weaknesses }) => (
     ))}
   </div>
 );
-
-const Evolutions = ({ evolutions, onSelect }) => (
-  <div className="flex flex-wrap items-center justify-center gap-2">
-    {evolutions.map(({ id, name, trigger }) => (
-      <div key={id} className="flex items-center gap-2">
-        {trigger && (
-          <span className="rounded-full bg-page px-3 py-1 text-xs font-semibold capitalize text-subtle">
-            {trigger}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => onSelect(id)}
-          title={formatName(name)}
-          className="rounded-full transition hover:bg-page"
-        >
-          <img src={spriteUrl(id)} alt={name} className="pixelated h-16 w-16" />
-        </button>
-      </div>
-    ))}
-  </div>
-);
-
-// `id` is the Pokédex number, so alternate forms (e.g. Mega Charizard X,
-// id 10034) still link to their neighbors in the Pokédex.
-const PrevNextNav = ({ id, onSelect }) => (
-  <div className="mx-3 mb-3 flex items-center justify-between rounded-2xl bg-page p-2 text-sm font-semibold">
-    {id > 1 ? <NeighborButton id={id - 1} onSelect={onSelect} /> : <span />}
-    {id < MAX_POKEDEX_ID && (
-      <NeighborButton id={id + 1} onSelect={onSelect} isNext />
-    )}
-  </div>
-);
-
-const NeighborButton = ({ id, onSelect, isNext = false }) => {
-  const { data: pokemon } = usePokemon(id);
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(id)}
-      className={`flex items-center gap-1 rounded-xl px-2 py-1 capitalize hover:bg-surface ${
-        isNext ? "flex-row-reverse" : ""
-      }`}
-    >
-      <span className="text-muted">{isNext ? "›" : "‹"}</span>
-      <img src={spriteUrl(id)} alt="" className="pixelated h-8 w-8" />
-      {pokemon && formatName(pokemonDisplayName(pokemon))}
-      <span className="text-muted">#{id}</span>
-    </button>
-  );
-};
 
 export default PokemonDetail;

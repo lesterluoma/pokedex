@@ -3,10 +3,11 @@ import { formatName, formatPokedexNumber, pokemonDisplayName } from "../utils";
 import TypeBadge from "./TypeBadge";
 
 // Shared card shell so loading, error and loaded states are the same size.
-const CardShell = ({ children, isSelected = false, onClick }) => (
+const CardShell = ({ children, isSelected = false, onClick, onDoubleClick }) => (
   <button
     type="button"
     onClick={onClick}
+    onDoubleClick={onDoubleClick}
     disabled={!onClick}
     aria-pressed={isSelected}
     className={`relative flex h-36 w-full flex-col items-center justify-end rounded-3xl bg-surface px-4 pb-5 shadow-sm transition
@@ -17,7 +18,12 @@ const CardShell = ({ children, isSelected = false, onClick }) => (
   </button>
 );
 
-const PokemonCard = ({ id, isSelected, onSelect }) => {
+/**
+ * One grid card. Clicking calls `onSelect(id)` (the sidebar);
+ * double-clicking calls `onOpen(pokemon)` with the raw /pokemon response
+ * (the detail page).
+ */
+const PokemonCard = ({ id, isSelected, onSelect, onOpen }) => {
   const { data: pokemon, error, isLoading } = usePokemon(id);
 
   if (isLoading) {
@@ -41,7 +47,11 @@ const PokemonCard = ({ id, isSelected, onSelect }) => {
   }
 
   return (
-    <CardShell isSelected={isSelected} onClick={() => onSelect(id)}>
+    <CardShell
+      isSelected={isSelected}
+      onClick={() => onSelect(id)}
+      onDoubleClick={() => onOpen(pokemon)}
+    >
       <img
         src={pokemon.sprites.front_default}
         alt={pokemonDisplayName(pokemon)}

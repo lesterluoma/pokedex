@@ -42,14 +42,11 @@ const AlternateForms = ({
 
   return (
     <>
-      <div className="mb-3 inline-flex rounded-full bg-page p-1 text-xs font-semibold">
-        <ColorButton isActive={!isShiny} onClick={() => onShinyChange(false)}>
-          Normal
-        </ColorButton>
-        <ColorButton isActive={isShiny} onClick={() => onShinyChange(true)}>
-          Shiny
-        </ColorButton>
-      </div>
+      <ShinySwitch
+        isShiny={isShiny}
+        onChange={onShinyChange}
+        className="mb-3"
+      />
       <div className="flex flex-wrap justify-center gap-2">
         {shown.map((form) => {
           const label = formLabel(form.formName, speciesName);
@@ -99,6 +96,20 @@ const AlternateForms = ({
     </>
   );
 };
+
+/** Normal/Shiny switch. `onChange(isShiny)` runs when either side is clicked. */
+export const ShinySwitch = ({ isShiny, onChange, className = "" }) => (
+  <div
+    className={`inline-flex rounded-full bg-page p-1 text-xs font-semibold ${className}`}
+  >
+    <ColorButton isActive={!isShiny} onClick={() => onChange(false)}>
+      Normal
+    </ColorButton>
+    <ColorButton isActive={isShiny} onClick={() => onChange(true)}>
+      Shiny
+    </ColorButton>
+  </div>
+);
 
 const ColorButton = ({ isActive, onClick, children }) => (
   <button

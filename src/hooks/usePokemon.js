@@ -3,6 +3,7 @@ import {
   getPokemon,
   getPokemonDetails,
   getPokemonForm,
+  getPokemonFullDetails,
   getPokemonList,
 } from "../services/pokeapi";
 import { NO_ARG, useResource } from "./useResource";
@@ -18,6 +19,10 @@ export const usePokemon = (id) => useResource(getPokemon, id);
 
 /** Full data for the detail sidebar. See getPokemonDetails for the shape. */
 export const usePokemonDetails = (id) => useResource(getPokemonDetails, id);
+
+/** Everything on the detail page. See getPokemonFullDetails for the shape. */
+export const usePokemonFullDetails = (name) =>
+  useResource(getPokemonFullDetails, name);
 
 /** Types and weaknesses of one look, e.g. "arceus-fire". See getPokemonForm. */
 export const usePokemonForm = (name) => useResource(getPokemonForm, name);

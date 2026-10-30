@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { ShowMoreButton, StatusMessage } from "../components/GridFooter";
 import PokedexFilters from "../components/PokedexFilters";
 import PokemonCard from "../components/PokemonCard";
@@ -14,7 +15,12 @@ import {
 import { usePokemonSearch } from "../hooks/usePokemonSearch";
 import { useSidebarSelection } from "../hooks/useSidebarSelection";
 import { useUrlFilters } from "../hooks/useUrlFilters";
-import { pokemonDisplayName, toSlug, toTitleCase } from "../utils";
+import {
+  pokemonDisplayName,
+  pokemonPath,
+  toSlug,
+  toTitleCase,
+} from "../utils";
 import {
   filterPokemon,
   needsPokedexIndex,
@@ -53,6 +59,14 @@ const Pokedex = () => {
   useDocumentTitle(
     openPokemon.data ? toTitleCase(pokemonDisplayName(openPokemon.data)) : "Pokémon"
   );
+
+  // Double-clicking a card opens its detail page. `pokedexDepth` tells the
+  // page's "Back to Pokédex" link how many steps back the grid is.
+  const navigate = useNavigate();
+  const openDetailPage = (pokemon) =>
+    navigate(pokemonPath(pokemonDisplayName(pokemon)), {
+      state: { pokedexDepth: 1 },
+    });
 
   const handleQueryChange = (text) => {
     pokemonSearch.clearError();
@@ -112,6 +126,7 @@ const Pokedex = () => {
                 id={id}
                 isSelected={sidebar.isSelected(id)}
                 onSelect={sidebar.toggle}
+                onOpen={openDetailPage}
               />
             ))}
           </section>

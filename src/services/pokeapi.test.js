@@ -29,12 +29,12 @@ const charizard = {
     { type: { name: "flying", url: `${API}/type/3/` } },
   ],
   abilities: [
-    { ability: { name: "blaze" }, is_hidden: false },
-    { ability: { name: "solar-power" }, is_hidden: true },
+    { ability: { name: "blaze", url: `${API}/ability/66/` }, is_hidden: false },
+    { ability: { name: "solar-power", url: `${API}/ability/94/` }, is_hidden: true },
   ],
   stats: [
-    { stat: { name: "hp" }, base_stat: 78 },
-    { stat: { name: "speed" }, base_stat: 100 },
+    { stat: { name: "hp" }, base_stat: 78, effort: 0 },
+    { stat: { name: "speed" }, base_stat: 100, effort: 3 },
   ],
 };
 
@@ -44,8 +44,30 @@ const charizardSpecies = {
     { genus: "Flame Pokémon", language: { name: "en" } },
   ],
   flavor_text_entries: [
-    { flavor_text: "Crache du feu.", language: { name: "fr" } },
-    { flavor_text: "Spits fire that\nis hot enough\fto melt boulders.", language: { name: "en" } },
+    { flavor_text: "Crache du feu.", language: { name: "fr" }, version: { name: "x" } },
+    {
+      flavor_text: "Spits fire that\nis hot enough\fto melt boulders.",
+      language: { name: "en" },
+      version: { name: "red" },
+    },
+    // Same text as Red once the line breaks are gone.
+    {
+      flavor_text: "Spits fire that is hot\nenough to melt boulders.",
+      language: { name: "en" },
+      version: { name: "blue" },
+    },
+    { flavor_text: "It flies in search of\nstrong opponents.", language: { name: "en" }, version: { name: "x" } },
+  ],
+  capture_rate: 45,
+  base_happiness: 50,
+  growth_rate: { name: "medium-slow" },
+  egg_groups: [{ name: "monster" }, { name: "dragon" }],
+  hatch_counter: 20,
+  gender_rate: 1, // in eighths: 1 female in 8
+  names: [
+    { name: "Dracaufeu", language: { name: "fr" } },
+    { name: "リザードン", language: { name: "ja-hrkt" } },
+    { name: "Charizard", language: { name: "en" } },
   ],
   evolution_chain: { url: `${API}/evolution-chain/2/` },
   // Not in the API's order, to check the default form comes first.
@@ -176,7 +198,24 @@ const tm01 = {
   held_by_pokemon: [],
 };
 
+const blaze = {
+  flavor_text_entries: [
+    { flavor_text: "Ups FIRE moves\nin a pinch.", language: { name: "en" } },
+    { flavor_text: "Powers up Fire-type\nmoves when HP is low.", language: { name: "en" } },
+    { flavor_text: "Augmente les capacités Feu.", language: { name: "fr" } },
+  ],
+  effect_entries: [],
+};
+// No flavor text, only the effect.
+const solarPower = {
+  flavor_text_entries: [],
+  effect_entries: [{ short_effect: "Boosts Sp. Atk in sunshine.", language: { name: "en" } }],
+};
+
 const ROUTES = {
+  [`${API}/pokemon/charizard`]: charizard,
+  [`${API}/ability/66/`]: blaze,
+  [`${API}/ability/94/`]: solarPower,
   [`${API}/pokemon/6`]: charizard,
   [`${API}/pokemon-species/6/`]: charizardSpecies,
   [`${API}/evolution-chain/2/`]: charmanderChain,
@@ -394,9 +433,75 @@ describe("getPokemonDetails", () => {
   });
 });
 
+describe("getPokemonFullDetails", () => {
+  it("adds training, breeding and other names to the sidebar's data", async () => {
+    expect(await api.getPokemonFullDetails("charizard")).toMatchObject({
+      id: 6,
+      name: "charizard",
+      genus: "Flame Pokémon",
+      evYield: [{ name: "speed", value: 3 }],
+      catchRate: 45,
+      baseHappiness: 50,
+      growthRate: "medium-slow",
+      eggGroups: ["monster", "dragon"],
+      eggCycles: 20,
+      femaleRatio: 0.125,
+      // In the page's order (Japanese first), not the API's.
+      otherNames: [
+        { language: "Japanese", name: "リザードン" },
+        { language: "French", name: "Dracaufeu" },
+      ],
+    });
+  });
+
+  it("doesn't fetch the Pokémon again by number", async () => {
+    await api.getPokemonFullDetails("charizard");
+    expect(requestedUrls()).not.toContain(`${API}/pokemon/6`);
+  });
+
+  it("describes abilities with the newest English text", async () => {
+    const { abilities } = await api.getPokemonFullDetails(6);
+    expect(abilities).toEqual([
+      { name: "blaze", isHidden: false, description: "Powers up Fire-type moves when HP is low." },
+      { name: "solar-power", isHidden: true, description: "Boosts Sp. Atk in sunshine." },
+    ]);
+  });
+
+  it("lists English Pokédex entries, grouping games with the same text", async () => {
+    const { pokedexEntries } = await api.getPokemonFullDetails(6);
+    expect(pokedexEntries).toEqual([
+      { games: ["red", "blue"], text: "Spits fire that is hot enough to melt boulders." },
+      { games: ["x"], text: "It flies in search of strong opponents." },
+    ]);
+  });
+
+  it("gives the damage taken from every type", async () => {
+    const { damageTaken } = await api.getPokemonFullDetails(6);
+    const multiplier = (type) => damageTaken.find((entry) => entry.type === type).multiplier;
+
+    expect(damageTaken).toHaveLength(18);
+    expect(damageTaken[0]).toEqual({ type: "normal", multiplier: 1 });
+    expect(multiplier("rock")).toBe(4);
+    expect(multiplier("ground")).toBe(0);
+    expect(multiplier("grass")).toBe(0.25);
+    expect(multiplier("fire")).toBe(0.5);
+  });
+
+  it("marks genderless Pokémon with null", async () => {
+    fetch.mockImplementation(async (url) =>
+      jsonResponse(
+        url === `${API}/pokemon-species/6/`
+          ? { ...charizardSpecies, gender_rate: -1 }
+          : ROUTES[url]
+      )
+    );
+    expect((await api.getPokemonFullDetails(6)).femaleRatio).toBeNull();
+  });
+});
+
 describe("getPokemonForm", () => {
   it("returns a look's own types and weaknesses", async () => {
-    expect(await api.getPokemonForm("arceus-grass")).toEqual({
+    expect(await api.getPokemonForm("arceus-grass")).toMatchObject({
       name: "arceus-grass",
       types: ["grass"],
       weaknesses: [
