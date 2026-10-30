@@ -70,7 +70,7 @@ Once the development server is running, you can:
 - Click the reset button next to the filters to clear them all.
 - Press Enter in the search bar to open a Pokémon directly. This also finds alternate forms, such as `charizard-mega-x`.
 - Click on a Pokémon to view its detailed information. Click it again to close the sidebar.
-- Click "View full page" in the sidebar, or double-click a card, to open the Pokémon's full page. "Back to Pokédex" takes you back with your filters and search kept.
+- Double-click a card, or click the artwork or name in the sidebar, to open the Pokémon's full page. "Back to Pokédex" takes you back with your filters and search kept.
 - On a Pokémon's full page, pick a game above the Moves tables to see the moves it learns there. The game you pick stays picked as you move between Pokémon.
 - Click "Show more" at the bottom of the page to load more cards.
 - Copy the page address to share what you're looking at. For example, `/pokedex?id=25` opens Pikachu and `/pokedex?type=fire&q=char` shows Fire-type Pokémon with "char" in their name.

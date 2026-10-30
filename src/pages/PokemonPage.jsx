@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AlternateForms, { FormImage, ShinySwitch } from "../components/AlternateForms";
+import ArtworkImage from "../components/ArtworkImage";
 import { Pill, Section } from "../components/DetailPanel";
 import Evolutions from "../components/Evolutions";
 import { StatusMessage } from "../components/GridFooter";
@@ -144,10 +145,10 @@ const PokemonPage = () => {
                 className={ARTWORK_CLASSES}
               />
             ) : (
-              <img
+              <ArtworkImage
                 src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
                 alt={formatName(pokemon.name)}
-                className={`object-contain ${ARTWORK_CLASSES}`}
+                className={ARTWORK_CLASSES}
               />
             )}
           </div>

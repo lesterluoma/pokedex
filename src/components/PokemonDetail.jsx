@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { usePokemonDetails, usePokemonForm } from "../hooks/usePokemon";
 import { formatName, formatPokedexNumber, pokemonPath } from "../utils";
 import AlternateForms, { FormImage } from "./AlternateForms";
+import ArtworkImage from "./ArtworkImage";
 import DetailPanel, { Pill, Section } from "./DetailPanel";
 import Evolutions from "./Evolutions";
 import PrevNextNav from "./PrevNextNav";
@@ -69,14 +70,18 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
                 className={ARTWORK_IMAGE_CLASSES}
               />
             ) : (
-              <img
+              <ArtworkImage
                 src={isArtworkShiny ? pokemon.shinyArtwork : pokemon.artwork}
                 alt={pokemon.name}
-                className={`object-contain ${ARTWORK_IMAGE_CLASSES}`}
+                className={ARTWORK_IMAGE_CLASSES}
               />
             )}
           </DetailPageLink>
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-16 text-center">
+          <div
+            onScroll={fadeUnderArtwork}
+            style={ARTWORK_FADE_STYLE}
+            className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 pt-16 text-center"
+          >
             <Header pokemon={pokemon} types={types} />
             <Section title="Pokédex Entry">
               <p className="text-sm text-subtle">{pokemon.description}</p>
@@ -147,6 +152,22 @@ const ARTWORK_CLASSES =
   "absolute -top-24 left-1/2 z-10 h-40 w-40 -translate-x-1/2 rounded-full";
 const ARTWORK_IMAGE_CLASSES = "h-40 w-40 drop-shadow-lg";
 
+// Content scrolling up under the artwork fades in a ring around it, down to
+// 55% opacity so it still shows through. The artwork's center is 16px above
+// the top of the scroll area (-top-24 plus half of h-40) and its radius is
+// 80px. `--artwork-fade` goes from 0 to 1 over the first 32px of scrolling,
+// so the header isn't faded at the top.
+const ARTWORK_FADE_MASK =
+  "radial-gradient(circle at 50% -16px, rgb(0 0 0 / calc(1 - 0.45 * var(--artwork-fade, 0))) 84px, #000 120px)";
+const ARTWORK_FADE_STYLE = {
+  maskImage: ARTWORK_FADE_MASK,
+  WebkitMaskImage: ARTWORK_FADE_MASK,
+};
+const fadeUnderArtwork = (event) => {
+  const fade = Math.min(event.currentTarget.scrollTop / 32, 1);
+  event.currentTarget.style.setProperty("--artwork-fade", fade);
+};
+
 /**
  * Opens the Pokémon's detail page. Used on the artwork, the Pokédex number,
  * the name and the species. `pokedexDepth: 1` lets the page's "Back to Pokédex" return
@@ -188,13 +209,6 @@ const Header = ({ pokemon, types }) => (
         <TypeBadge key={type} type={type} />
       ))}
     </div>
-    {/* The links above are easy to miss, so this one says what it does */}
-    <DetailPageLink
-      pokemon={pokemon}
-      className="mt-3 inline-block rounded-full bg-page px-4 py-2 text-xs font-semibold text-subtle transition hover:text-red"
-    >
-      View full page ›
-    </DetailPageLink>
   </>
 );
 
@@ -219,11 +233,17 @@ const Abilities = ({ abilities }) => (
   </div>
 );
 
+// Each badge takes half the box (up to its usual 62px), so there are always
+// two to a row, even when a narrow screen squeezes the sidebar.
 const Weaknesses = ({ weaknesses }) => (
   <div className="flex flex-wrap justify-center gap-1 rounded-2xl bg-page px-2 py-2">
     {weaknesses.map(({ type, multiplier }) => (
-      <span key={type} title={`${multiplier}× damage`}>
-        <TypeBadge type={type} size="sm" />
+      <span
+        key={type}
+        title={`${multiplier}× damage`}
+        className="flex w-[calc(50%-0.125rem)] max-w-[62px]"
+      >
+        <TypeBadge type={type} size="sm" isFluid />
       </span>
     ))}
   </div>

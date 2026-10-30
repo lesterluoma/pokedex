@@ -8,9 +8,10 @@ const SIZE_CLASSES = {
   sm: "w-[62px] py-0.5 text-[10px]",
 };
 
-const TypeBadge = ({ type, size = "md" }) => (
+// `isFluid` fills its container instead, for boxes that set the width.
+const TypeBadge = ({ type, size = "md", isFluid = false }) => (
   <span
-    className={`inline-block rounded-md text-center font-bold uppercase tracking-wide ${SIZE_CLASSES[size]} ${TYPE_CLASSES[type]}`}
+    className={`inline-block rounded-md text-center font-bold uppercase tracking-wide ${SIZE_CLASSES[size]} ${isFluid ? "!w-full" : ""} ${TYPE_CLASSES[type]}`}
   >
     {type}
   </span>

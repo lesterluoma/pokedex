@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { artworkUrl, formatName, spriteUrl, visibleCount } from "../utils";
+import ArtworkImage from "./ArtworkImage";
 
 // Tiles shown at first and added per "Show more" click (three rows of three).
 const PAGE_SIZE = 9;
@@ -127,7 +128,8 @@ const ColorButton = ({ isActive, onClick, children }) => (
 /**
  * Official artwork for a form's `imageKey`, falling back to the small sprite
  * for the forms that have no artwork. Also used for the large image at the
- * top of the sidebar when a look is picked.
+ * top of the sidebar when a look is picked. Either way it's sized to fill
+ * its box the same as every other form (see ArtworkImage).
  */
 export const FormImage = ({ imageKey, isShiny, alt, className = "" }) => {
   const [failedSrc, setFailedSrc] = useState(null);
@@ -135,12 +137,12 @@ export const FormImage = ({ imageKey, isShiny, alt, className = "" }) => {
   const useSprite = failedSrc === artwork;
 
   return (
-    <img
+    <ArtworkImage
       src={useSprite ? spriteUrl(imageKey, isShiny) : artwork}
       alt={alt}
       loading="lazy"
       onError={() => setFailedSrc(artwork)}
-      className={`object-contain ${useSprite ? "pixelated" : ""} ${className}`}
+      className={`${useSprite ? "pixelated" : ""} ${className}`}
     />
   );
 };

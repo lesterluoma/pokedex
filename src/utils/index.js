@@ -127,3 +127,46 @@ export const startingMoveGame = (games, pickedGame) => {
   if (games.some(({ name }) => name === pickedGame)) return pickedGame;
   return (games.find(({ hasLevelUp }) => hasLevelUp) ?? games[0])?.name ?? null;
 };
+
+/**
+ * The part of an image that isn't see-through, from canvas RGBA pixel data:
+ * { left, top, right, bottom } in pixels (right and bottom exclusive), or
+ * null for a blank image. Faint pixels (alpha 16 or less) don't count, so a
+ * soft halo doesn't widen the box.
+ */
+export const contentBox = (pixels, width, height) => {
+  let left = width;
+  let top = height;
+  let right = 0;
+  let bottom = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (pixels[(y * width + x) * 4 + 3] > 16) {
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x + 1);
+        bottom = Math.max(bottom, y + 1);
+      }
+    }
+  }
+  return right > left ? { left, top, right, bottom } : null;
+};
+
+// How much of its box the Pokémon fills once fitted, across its widest side.
+const ARTWORK_FILL = 0.9;
+
+/**
+ * How to scale and move an image so its content box (from contentBox) is
+ * centered and fills ARTWORK_FILL of a square, object-contain box. Some
+ * artworks have empty space around the Pokémon and others don't (shiny
+ * Galarian Zapdos fills its whole canvas), so this makes them all the same
+ * size. `x` and `y` are percentages of the box, for CSS translate().
+ */
+export const artworkFit = ({ left, top, right, bottom }, width, height) => {
+  const side = Math.max(width, height);
+  return {
+    scale: (ARTWORK_FILL * side) / Math.max(right - left, bottom - top),
+    x: ((width - left - right) / 2 / side) * 100,
+    y: ((height - top - bottom) / 2 / side) * 100,
+  };
+};
