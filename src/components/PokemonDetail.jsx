@@ -128,6 +128,7 @@ const PokemonDetail = ({ id, onSelect, onClose }) => {
             id={pokemon.speciesId}
             onSelect={openPokemon}
             className="mx-3 mb-3 bg-page"
+            isCompact
           />
         </>
       )}

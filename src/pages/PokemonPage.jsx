@@ -4,6 +4,8 @@ import AlternateForms, { FormImage, ShinySwitch } from "../components/AlternateF
 import { Pill, Section } from "../components/DetailPanel";
 import Evolutions from "../components/Evolutions";
 import { StatusMessage } from "../components/GridFooter";
+import PageCard from "../components/PageCard";
+import PokemonMoves from "../components/PokemonMoves";
 import PrevNextNav from "../components/PrevNextNav";
 import TypeBadge from "../components/TypeBadge";
 import { STATS } from "../constants";
@@ -38,6 +40,8 @@ const PokemonPage = () => {
 
   // Normal/Shiny, kept when moving to another Pokémon like in the sidebar.
   const [isShiny, setIsShiny] = useState(false);
+  // The game picked in Moves, also kept between Pokémon (see PokemonMoves).
+  const [moveGame, setMoveGame] = useState(null);
   // A look picked in Alternate Forms (e.g. "arceus-fire"), for the Pokémon
   // it belongs to: { pokemonId, look }. It swaps the large image, types and
   // damage taken; other forms open their own page.
@@ -184,7 +188,7 @@ const PokemonPage = () => {
       </section>
 
       <div className="mt-6 grid gap-6 md:grid-cols-3">
-        <Card title="Training">
+        <PageCard title="Training">
           <InfoList
             rows={[
               ["Catch rate", pokemon.catchRate],
@@ -198,33 +202,33 @@ const PokemonPage = () => {
               ],
             ]}
           />
-        </Card>
-        <Card title="Breeding">
+        </PageCard>
+        <PageCard title="Breeding">
           <InfoList
             rows={[
               ["Egg groups", pokemon.eggGroups.map(formatName).join(", ")],
               ["Egg cycles", pokemon.eggCycles ?? "—"],
             ]}
           />
-        </Card>
-        <Card title="Other Names">
+        </PageCard>
+        <PageCard title="Other Names">
           <InfoList
             rows={pokemon.otherNames.map(({ language, name }) => [language, name])}
           />
-        </Card>
+        </PageCard>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[3fr_2fr]">
-        <Card title="Base Stats">
+        <PageCard title="Base Stats">
           <StatTable stats={pokemon.stats} />
-        </Card>
-        <Card title="Damage Taken">
+        </PageCard>
+        <PageCard title="Damage Taken">
           <DamageTaken damageTaken={damageTaken} />
-        </Card>
+        </PageCard>
       </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <Card title="Evolution">
+        <PageCard title="Evolution">
           {pokemon.evolutions.length > 1 ? (
             <Evolutions
               evolutions={pokemon.evolutions}
@@ -237,8 +241,8 @@ const PokemonPage = () => {
               This Pokémon doesn&apos;t evolve.
             </p>
           )}
-        </Card>
-        <Card title="Alternate Forms" className="text-center">
+        </PageCard>
+        <PageCard title="Alternate Forms" className="text-center">
           <AlternateForms
             forms={pokemon.forms}
             currentName={
@@ -250,12 +254,19 @@ const PokemonPage = () => {
             onShinyChange={setIsShiny}
             onSelect={handleFormSelect}
           />
-        </Card>
+        </PageCard>
       </div>
 
-      <Card title="Pokédex Entries" className="mt-6">
+      <PokemonMoves
+        pokemonId={pokemon.id}
+        pickedGame={moveGame}
+        onPickGame={setMoveGame}
+        className="mt-6"
+      />
+
+      <PageCard title="Pokédex Entries" className="mt-6">
         <PokedexEntries entries={pokemon.pokedexEntries} />
-      </Card>
+      </PageCard>
     </>
   );
 };
@@ -268,16 +279,6 @@ const ARTWORK_CLASSES = "h-[88%] w-[88%] drop-shadow-lg";
 
 // Highest base stat of any Pokémon (Blissey's HP), so the bars share a scale.
 const MAX_BASE_STAT = 255;
-
-/** White card with a small uppercase heading, like the sidebar's sections. */
-const Card = ({ title, className = "", children }) => (
-  <section className={`rounded-3xl bg-surface p-6 shadow-sm ${className}`}>
-    <h2 className="mb-3 text-left text-sm font-bold uppercase tracking-wide">
-      {title}
-    </h2>
-    {children}
-  </section>
-);
 
 /** Label/value rows: rows = [["Catch rate", 45], ...] */
 const InfoList = ({ rows }) => (

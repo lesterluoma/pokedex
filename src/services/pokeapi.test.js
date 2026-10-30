@@ -638,3 +638,110 @@ describe("getItemIndex", () => {
     ]);
   });
 });
+
+describe("getMoveGames", () => {
+  const row = (name, order, versions, method) => ({
+    versiongroup: { name, order, versions: versions.map((version) => ({ name: version })) },
+    movelearnmethod: { name: method },
+  });
+
+  it("lists each game once, newest first, noting level-up moves", async () => {
+    graphqlData = {
+      data: {
+        pokemonmove: [
+          row("sword-shield", 22, ["sword", "shield"], "level-up"),
+          row("sword-shield", 22, ["sword", "shield"], "machine"),
+          row("champions", 32, ["champions"], "train"),
+          row("scarlet-violet", 27, ["scarlet", "violet"], "machine"),
+          row("scarlet-violet", 27, ["scarlet", "violet"], "level-up"),
+        ],
+      },
+    };
+
+    expect(await api.getMoveGames(869)).toEqual([
+      { name: "champions", versions: ["champions"], hasLevelUp: false },
+      { name: "scarlet-violet", versions: ["scarlet", "violet"], hasLevelUp: true },
+      { name: "sword-shield", versions: ["sword", "shield"], hasLevelUp: true },
+    ]);
+  });
+
+  it("refuses anything but a whole number as the id", async () => {
+    await expect(api.getMoveGames("25 } evil")).rejects.toThrow("Not a Pokémon id");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("getPokemonMoves", () => {
+  const row = (method, name, { level = 0, machine = null, power = 40 } = {}) => ({
+    level,
+    movelearnmethod: { name: method },
+    move: {
+      name,
+      power,
+      accuracy: 100,
+      pp: 30,
+      type: { name: "electric" },
+      movedamageclass: { name: "special" },
+      machines: machine ? [{ item: { name: machine } }] : [],
+    },
+  });
+
+  beforeEach(() => {
+    // Like the API: sorted by level, so every non-level-up move comes first.
+    graphqlData = {
+      data: {
+        pokemonmove: [
+          row("tutor", "zap-cannon"),
+          row("machine", "thunderbolt", { machine: "tm126" }),
+          row("machine", "thunder", { machine: "tm9" }),
+          row("stadium-surfing-pikachu", "surf"),
+          row("egg", "wish"),
+          row("egg", "charge"),
+          row("level-up", "thunder-shock", { level: 1 }),
+          row("level-up", "spark", { level: 20 }),
+        ],
+      },
+    };
+  });
+
+  it("groups moves by how they're learned, in the page's order", async () => {
+    const groups = await api.getPokemonMoves(25, "scarlet-violet");
+    expect(groups.map(({ method }) => method)).toEqual([
+      "level-up",
+      "machine",
+      "egg",
+      "tutor",
+      "stadium-surfing-pikachu",
+    ]);
+  });
+
+  it("keeps level order, sorts TMs by number and the rest A to Z", async () => {
+    const groups = await api.getPokemonMoves(25, "scarlet-violet");
+    const names = (method) =>
+      groups.find((group) => group.method === method).moves.map(({ name }) => name);
+
+    expect(names("level-up")).toEqual(["thunder-shock", "spark"]);
+    expect(names("machine")).toEqual(["thunder", "thunderbolt"]); // TM9 before TM126
+    expect(names("egg")).toEqual(["charge", "wish"]);
+  });
+
+  it("flattens each move, with the level or TM where it applies", async () => {
+    const [levelUp, machines] = await api.getPokemonMoves(25, "scarlet-violet");
+    expect(levelUp.moves[1]).toEqual({
+      name: "spark",
+      type: "electric",
+      category: "special",
+      power: 40,
+      accuracy: 100,
+      pp: 30,
+      level: 20,
+      machine: null,
+    });
+    expect(machines.moves[0]).toMatchObject({ level: null, machine: "tm9" });
+  });
+
+  it("refuses game names that aren't plain API names", async () => {
+    await expect(api.getPokemonMoves(25, 'x" } }')).rejects.toThrow("Not a game name");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});

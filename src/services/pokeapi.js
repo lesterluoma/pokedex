@@ -347,6 +347,130 @@ const describeEvolutionTrigger = (details) => {
 };
 
 // ---------------------------------------------------------------------------
+// Moves
+// ---------------------------------------------------------------------------
+// Moves come from the GraphQL API one game at a time: every game at once is
+// about 1 MB for Pikachu, most of it TM numbers for games nobody picked.
+
+// GraphQL has no variables in fetchGraphQL, so values are checked before
+// they're written into a query.
+const checkPokemonId = (id) => {
+  if (!Number.isInteger(id)) throw new Error(`Not a Pokémon id: ${id}`);
+  return id;
+};
+const checkGameName = (name) => {
+  if (!/^[a-z0-9-]+$/.test(name)) throw new Error(`Not a game name: ${name}`);
+  return name;
+};
+
+/**
+ * Games this Pokémon learns moves in, newest first. A "game" is the API's
+ * version group: games sold as a pair share one move list.
+ * [{ name: "scarlet-violet", versions: ["scarlet", "violet"], hasLevelUp: true }, ...]
+ * `hasLevelUp` is false for games like Pokémon Champions, where moves
+ * aren't learned by leveling up.
+ */
+export const getMoveGames = async (pokemonId) => {
+  const data = await fetchGraphQL(`{
+    pokemonmove(
+      where: { pokemon_id: { _eq: ${checkPokemonId(pokemonId)} } }
+      distinct_on: [version_group_id, move_learn_method_id]
+    ) {
+      versiongroup { name order versions(order_by: { id: asc }) { name } }
+      movelearnmethod { name }
+    }
+  }`);
+
+  const games = new Map();
+  data.pokemonmove.forEach(({ versiongroup, movelearnmethod }) => {
+    const game = games.get(versiongroup.name) ?? {
+      name: versiongroup.name,
+      order: versiongroup.order,
+      versions: versiongroup.versions.map(({ name }) => name),
+      hasLevelUp: false,
+    };
+    if (movelearnmethod.name === "level-up") game.hasLevelUp = true;
+    games.set(versiongroup.name, game);
+  });
+
+  return [...games.values()]
+    .sort((a, b) => b.order - a.order)
+    .map(({ name, versions, hasLevelUp }) => ({ name, versions, hasLevelUp }));
+};
+
+// Ways to learn a move, in the order the page lists them. Rarer ones
+// (e.g. "stadium-surfing-pikachu") go after these, A to Z.
+const LEARN_METHOD_ORDER = ["level-up", "machine", "egg", "tutor"];
+const learnMethodRank = (method) => {
+  const index = LEARN_METHOD_ORDER.indexOf(method);
+  return index === -1 ? LEARN_METHOD_ORDER.length : index;
+};
+
+/**
+ * Every move this Pokémon learns in one game (a name from getMoveGames),
+ * grouped by how it's learned:
+ * [{ method: "level-up", moves: [{ name: "thunder-shock", type: "electric",
+ *     category: "special", power: 40, accuracy: 100, pp: 30, level: 1,
+ *     machine: null }, ...] },
+ *  { method: "machine", moves: [{ ..., level: null, machine: "tm81" }, ...] }, ...]
+ * Level-up moves are in level order (level 0 means "when it evolves"),
+ * TMs by number, the rest A to Z.
+ */
+export const getPokemonMoves = async (pokemonId, game) => {
+  const inGame = `versiongroup: { name: { _eq: "${checkGameName(game)}" } }`;
+  const data = await fetchGraphQL(`{
+    pokemonmove(
+      where: { pokemon_id: { _eq: ${checkPokemonId(pokemonId)} }, ${inGame} }
+      order_by: [{ level: asc }, { order: asc }]
+    ) {
+      level
+      movelearnmethod { name }
+      move {
+        name power accuracy pp
+        type { name }
+        movedamageclass { name }
+        machines(where: { ${inGame} }) { item { name } }
+      }
+    }
+  }`);
+
+  const groups = new Map();
+  data.pokemonmove.forEach(({ level, movelearnmethod, move }) => {
+    const method = movelearnmethod.name;
+    if (!groups.has(method)) groups.set(method, []);
+    groups.get(method).push({
+      name: move.name,
+      type: move.type.name,
+      category: move.movedamageclass?.name ?? null,
+      power: move.power,
+      accuracy: move.accuracy,
+      pp: move.pp,
+      level: method === "level-up" ? level : null,
+      machine: method === "machine" ? (move.machines[0]?.item.name ?? null) : null,
+    });
+  });
+
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const byMachine = (a, b) =>
+    (a.machine ?? "").localeCompare(b.machine ?? "", "en", { numeric: true });
+
+  return [...groups]
+    .map(([method, moves]) => ({
+      method,
+      // Level-up moves are already in level order from the query.
+      moves:
+        method === "level-up"
+          ? moves
+          : moves.toSorted(method === "machine" ? byMachine : byName),
+    }))
+    .sort(
+      (a, b) =>
+        learnMethodRank(a.method) - learnMethodRank(b.method) ||
+        a.method.localeCompare(b.method),
+    );
+};
+
+// ---------------------------------------------------------------------------
 // Items
 // ---------------------------------------------------------------------------
 
